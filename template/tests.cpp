@@ -7,34 +7,40 @@
 #include "order.h"
 
 template<typename T>
-bool RatNear(Rational<T> r, double v) {
+bool Near(Rational<T> r, double v) {
     return abs((double)r.Num() / r.Denom() - v) < 1e-12;
 }
 
-template <typename T>
-void TestRational(const std::string& type_name) {
-    using R = Rational<T>;
-    std::cerr << "Testing " << type_name << "..." << std::endl;
+template <typename R, typename T>
+void TestRational(
+        const std::string& rational_type,
+        const std::string& integral_type)
+{
+    std::cerr << "Testing " << rational_type <<
+            " with " << integral_type << "..." << std::endl;
 
     assert(R(42).Num() == 42);
     assert(R(42).Denom() == 1);
-    assert((R(1) / T{42}).Num() == 1);
-    assert((R(1) / T{42}).Denom() == 42);
-    assert(T{1} / (T{1} / (R)42) == (R)42);
+    assert((R(1) / R(42)).Num() == 1);
+    assert((R(1) / R(42)).Denom() == 42);
+    assert(R(1) / (R(1) / (R)42) == (R)42);
 
     for (T n1 = -10; n1 <= 10; n1++) {
         for (T d1 = -10; d1 <= 10; d1++) {
             if (d1 == 0) {
                 continue;
             }
+
             R ra = (R)n1 / d1;
             double da = (double)n1 / d1;
             T ta = n1 / d1;
 
-            assert((double)ra == da);
-            assert(RatNear(-ra, -da));
+            assert(Near(-ra, -da));
             assert((int)ra == (int)da);
+            assert((long)ra == (long)da);
+            assert((long long)ra == (long long)da);
             assert((float)ra == (float)da);
+            assert((double)ra == da);
             assert((double)floor(ra) == floor(da));
             assert((double)ceil(ra) == ceil(da));
             assert((double)trunc(ra) == trunc(da));
@@ -46,6 +52,7 @@ void TestRational(const std::string& type_name) {
                     if (d2 == 0) {
                         continue;
                     }
+
                     R rb = (R)n2 / d2;
                     double db = (double)n2 / d2;
                     T ib = n2 / d2;
@@ -58,27 +65,53 @@ void TestRational(const std::string& type_name) {
                     assert((ra <=> ib) == (da <=> ib));
                     assert((ta <=> rb) == (ta <=> db));
 
-                    assert(RatNear(ra + rb, da + db));
-                    assert(RatNear(ra + ib, da + ib));
-                    assert(RatNear(ta + rb, ta + db));
+                    assert(Near(ra + rb, da + db));
+                    assert(Near(ra + ib, da + ib));
+                    assert(Near(ta + rb, ta + db));
 
-                    assert(RatNear(ra - rb, da - db));
-                    assert(RatNear(ra - ib, da - ib));
-                    assert(RatNear(ta - rb, ta - db));
+                    assert(Near(ra - rb, da - db));
+                    assert(Near(ra - ib, da - ib));
+                    assert(Near(ta - rb, ta - db));
 
-                    assert(RatNear(ra * rb, da * db));
-                    assert(RatNear(ra * ib, da * ib));
-                    assert(RatNear(ta * rb, ta * db));
+                    assert(Near(ra * rb, da * db));
+                    assert(Near(ra * ib, da * ib));
+                    assert(Near(ta * rb, ta * db));
 
-                    if (ib != 0) {
-                        assert(RatNear(ra / rb, da / db));
-                        assert(RatNear(ra / ib, da / ib));
-                        assert(RatNear(ta / rb, ta / db));
-                    }
+                    if (n2 != 0) assert(Near(ra / rb, da / db));
+                    if (ib != 0) assert(Near(ra / ib, da / ib));
+                    if (n2 != 0) assert(Near(ta / rb, ta / db));
                 }
             }
         }
     }
+
+    // Add some numbers to make sure there's no overflow.
+    R acc = 0;
+    for (T i = 0; i < 1000; i++) {
+        acc = acc + (R)i / 1000;
+    }
+    assert (acc == (R)999 / 2);
+
+    // Subtract some numbers to make sure there's no overflow.
+    acc = 0;
+    for (T i = 0; i < 1000; i++) {
+        acc = acc - (R)i / 1000;
+    }
+    assert (acc == (R)-999 / 2);
+
+    // Multiply some numbers to make sure there's no overflow.
+    acc = 1;
+    for (T i = 1; i < 1000; i++) {
+        acc = acc * ((R)(i + 1) / i);
+    }
+    assert (acc == 1000);
+
+    // Divide some numbers to make sure there's no overflow.
+    acc = 1;
+    for (T i = 1; i < 1000; i++) {
+        acc = acc / ((R)(i + 1) / i);
+    }
+    assert (acc == (R)1 / 1000);
 }
 
 int main() {
@@ -122,11 +155,15 @@ int main() {
         assert(RoundDiv(i, 10) == round((double)i / 10));
     }
 
-    TestRational<int>("Rat");
-    TestRational<long>("LRat");
-    TestRational<long long>("LLRat");
-    assert((LLRat)((Rat)2 / 3) == (LLRat)2LL / 3LL);
-    assert((Rat)((LLRat)2LL / 3LL) == (Rat)2 / 3);
+    TestRational<Rat, int>("Rat", "int");
+    TestRational<LRat, long>("LRat", "long");
+    TestRational<LLRat, long long>("LLRat", "long long");
+    TestRational<Rat, long long>("Rat", "long long");
+    TestRational<LLRat, int>("LLRat", "int");
+
+    std::cerr << "Testing Rational conversions..." << std::endl;
+    assert((LLRat)((Rat)2 / 3) == (LLRat)2 / 3);
+    assert((Rat)((LLRat)2 / 3) == (Rat)2 / 3);
     
     std::cerr << "OK" << std::endl;
     return 0;

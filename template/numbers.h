@@ -127,7 +127,9 @@ template<typename T>
 class Rational {
 public:
     Rational() : n_(0), d_(1) {}
-    Rational(T x) : n_(x), d_(1) {}
+
+    template<class U>
+    Rational(U x) requires std::integral<U> : n_(static_cast<T>(x)), d_(1) {}
 
     Rational(const Rational&) = default;
     Rational& operator=(const Rational&) = default;
@@ -152,96 +154,161 @@ public:
     }
 
     friend std::ostream& operator<<(std::ostream& out, const Rational& r) {
-        Rational s = r.Normal();
-        if (s.d_ == 1) {
-            return out << s.n_;
+        if (r.d_ == 1) {
+            return out << r.n_;
         }
-        return out << s.n_ << '/' << s.d_;
+        return out << r.n_ << '/' << r.d_;
     }
+
+
+    // Equality comparison.
 
     bool operator==(const Rational& other) const {
         return n_ * other.d_ == other.n_ * d_;
     }
-    bool operator==(T other) const {
+
+    template<typename U>
+    bool operator==(U other) const requires std::integral<U> {
         return *this == Rational(other);
     }
-    template <typename U> bool operator==(U other) const = delete;
+
+    template<typename U>
+    bool operator==(U) const = delete;
+
+
+    // Order comparison.
 
     std::strong_ordering operator<=>(const Rational& other) const {
         Rational x = *this - other;
         return (x.d_ > 0) ? (x.n_ <=> 0) : (0 <=> x.n_);
     }
-    std::strong_ordering operator<=>(T other) const {
+
+    template<typename U>
+    std::strong_ordering operator<=>(U other) const requires std::integral<U> {
         return *this <=> Rational(other);
     }
-    template <typename U> std::strong_ordering operator<=>(U other) const = delete;
+
+    template<typename U>
+    std::strong_ordering operator<=>(U) const = delete;
+
+
+    // Addition.
 
     Rational operator+(const Rational& other) const {
         return Rational(n_ * other.d_ + other.n_ * d_, d_ * other.d_).Normal();
     }
-    Rational operator+(T other) const {
+
+    template<typename U>
+    Rational operator+(U other) const requires std::integral<U> {
         return *this + Rational(other);
     }
-    friend Rational operator+(T other, const Rational& r) {
+
+    template<typename U>
+    Rational operator+(U) const = delete;
+
+    template<typename U>
+    friend Rational operator+(U other, const Rational& r) requires std::integral<U> {
         return Rational(other) + r;
     }
-    template <typename U> Rational operator+(U) const = delete;
-    template <typename U> friend Rational operator+(U, const Rational&) = delete;
 
+    template<typename U>
+    friend Rational operator+(U, const Rational&) = delete;
+
+
+    // Unary minus.
 
     Rational operator-() const {
         return Rational(-n_, d_);
     }
 
+
+    // Subtraction.
+
     Rational operator-(const Rational& other) const {
         return Rational(n_ * other.d_ - other.n_ * d_, d_ * other.d_).Normal();
     }
-    Rational operator-(T other) const {
+
+    template<typename U>
+    Rational operator-(U other) const requires std::integral<U> {
         return *this - Rational(other);
     }
-    friend Rational operator-(T other, const Rational& r) {
+
+    template<typename U>
+    Rational operator-(U) const = delete;
+    
+    template<typename U>
+    friend Rational operator-(U other, const Rational& r) requires std::integral<U> {
         return Rational(other) - r;
     }
-    template <typename U> Rational operator-(U) const = delete;
-    template <typename U> friend Rational operator-(U, const Rational&) = delete;
+
+    template<typename U>
+    friend Rational operator-(U, const Rational&) = delete;
+
+
+    // Multiplication.
 
     Rational operator*(const Rational& other) const {
         return Rational(n_ * other.n_, d_ * other.d_).Normal();
     }
-    Rational operator*(T other) const {
+
+    template<typename U>
+    Rational operator*(U other) const requires std::integral<U> {
         return *this * Rational(other);
     }
-    friend Rational operator*(T other, const Rational& r) {
+
+    template<typename U>
+    Rational operator*(U) const = delete;
+
+    template<typename U>
+    friend Rational operator*(U other, const Rational& r) requires std::integral<U> {
         return Rational(other) * r;
     }
-    template <typename U> Rational operator*(U) const = delete;
-    template <typename U> friend Rational operator*(U, const Rational&) = delete;
+
+    template<typename U>
+    friend Rational operator*(U, const Rational&) = delete;
+
+
+    // Division.
 
     Rational operator/(const Rational& other) const {
         assert (other.n_ != 0);
         return Rational(n_ * other.d_, other.n_ * d_).Normal();
     }
-    Rational operator/(T other) const {
+
+    template<typename U>
+    Rational operator/(U other) const requires std::integral<U> {
         return *this / Rational(other);
     }
-    friend Rational operator/(T other, const Rational& r) {
+
+    template <typename U>
+    Rational operator/(U) const = delete;
+
+    template<typename U>
+    friend Rational operator/(U other, const Rational& r) requires std::integral<U> {
         return Rational(other) / r;
     }
-    template <typename U> Rational operator/(U) const = delete;
-    template <typename U> friend Rational operator/(U, const Rational&) = delete;    
 
+    template <typename U>
+    friend Rational operator/(U, const Rational&) = delete;    
+
+    // TODO: add += etc.
     // TODO: add operations with floating point numbers, resulting in floating point numbers.
-    // TODO: (?) add operations with Rational<U> resulting in Rational of the stronger type.
-    // TODO: (?) add operations with integral types other than T, resulting in Rational of the stronger type.
 
-    operator T() const {
-        return n_ / d_;
+
+    // Cast to primitive types.
+
+    template<class U>
+    operator U() const requires std::integral<U>{
+        return static_cast<U>(n_ / d_);
     }
 
     template<class U>
     operator U() const requires std::floating_point<U> {
         return static_cast<U>(n_) / static_cast<U>(d_); 
     }
+
+
+    // Rounding.
 
     Rational Floor() const {
         return FloorDiv<T>(n_, d_);
