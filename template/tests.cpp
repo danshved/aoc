@@ -47,6 +47,12 @@ void TestRational(
             assert((double)round(ra) == round(da));
             assert((double)abs(ra) == abs(da));
 
+            static_assert(std::is_same_v<decltype(floor(ra)), R>);
+            static_assert(std::is_same_v<decltype(ceil(ra)), R>);
+            static_assert(std::is_same_v<decltype(trunc(ra)), R>);
+            static_assert(std::is_same_v<decltype(round(ra)), R>);
+            static_assert(std::is_same_v<decltype(abs(ra)), R>);
+
             for (T n2 = -10; n2 <= 10; n2++) {
                 for (T d2 = -10; d2 <= 10; d2++) {
                     if (d2 == 0) {
@@ -80,7 +86,19 @@ void TestRational(
                     if (n2 != 0) assert(Near(ra / rb, da / db));
                     if (ib != 0) assert(Near(ra / ib, da / ib));
                     if (n2 != 0) assert(Near(ta / rb, ta / db));
-                }
+
+                    { R t = ra; t += rb; assert(Near(t, da + db)); }
+                    { R t = ra; t += ib; assert(Near(t, da + ib)); }
+
+                    { R t = ra; t -= rb; assert(Near(t, da - db)); }
+                    { R t = ra; t -= ib; assert(Near(t, da - ib)); }    
+
+                    { R t = ra; t *= rb; assert(Near(t, da * db)); }
+                    { R t = ra; t *= ib; assert(Near(t, da * ib)); }   
+
+                    if (n2 != 0) { R t = ra; t /= rb; assert(Near(t, da / db)); }
+                    if (ib != 0) { R t = ra; t /= ib; assert(Near(t, da / ib)); }     
+                 }
             }
         }
     }
@@ -88,28 +106,28 @@ void TestRational(
     // Add some numbers to make sure there's no overflow.
     R acc = 0;
     for (T i = 0; i < 1000; i++) {
-        acc = acc + (R)i / 1000;
+        acc += (R)i / 1000;
     }
     assert (acc == (R)999 / 2);
 
     // Subtract some numbers to make sure there's no overflow.
     acc = 0;
     for (T i = 0; i < 1000; i++) {
-        acc = acc - (R)i / 1000;
+        acc -= (R)i / 1000;
     }
     assert (acc == (R)-999 / 2);
 
     // Multiply some numbers to make sure there's no overflow.
     acc = 1;
     for (T i = 1; i < 1000; i++) {
-        acc = acc * ((R)(i + 1) / i);
+        acc *= ((R)(i + 1) / i);
     }
     assert (acc == 1000);
 
     // Divide some numbers to make sure there's no overflow.
     acc = 1;
     for (T i = 1; i < 1000; i++) {
-        acc = acc / ((R)(i + 1) / i);
+        acc /= ((R)(i + 1) / i);
     }
     assert (acc == (R)1 / 1000);
 }

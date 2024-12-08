@@ -164,7 +164,12 @@ public:
     // Equality comparison.
 
     bool operator==(const Rational& other) const {
-        return n_ * other.d_ == other.n_ * d_;
+        // This is a "terminating" operation, i.e. returning a non-Rational.
+        // If we got a bad rational with zero denominator, probably due to
+        // arithmetic overflow, complain now before the error propagates
+        // further.
+        assert (d_ != 0 && other.d_ != 0);
+        return n_ * other.d_ == d_ * other.n_;
     }
 
     template<typename U>
@@ -180,6 +185,10 @@ public:
 
     std::strong_ordering operator<=>(const Rational& other) const {
         Rational x = *this - other;
+
+        // This is a "terminating" operation (doesn't return Rational), so we
+        // check now if Rational computations produced an invalid value.
+        assert (x.d_ != 0);
         return (x.d_ > 0) ? (x.n_ <=> 0) : (0 <=> x.n_);
     }
 
@@ -291,7 +300,71 @@ public:
     template <typename U>
     friend Rational operator/(U, const Rational&) = delete;    
 
-    // TODO: add += etc.
+
+    // Compound assignment by sum.
+
+    Rational& operator+=(const Rational& other) {
+        *this = *this + other;
+        return *this;
+    }
+
+    template<typename U>
+    Rational& operator+=(U other) requires std::integral<U> {
+        return (*this += Rational(other));
+    }
+
+    template<typename U>
+    Rational& operator+=(U) = delete;
+
+
+    // Compound assignment by difference.
+
+    Rational& operator-=(const Rational& other) {
+        *this = *this - other;
+        return *this;
+    }
+
+    template<typename U>
+    Rational& operator-=(U other) requires std::integral<U> {
+        return (*this -= Rational(other));
+    }
+
+    template<typename U>
+    Rational& operator-=(U) = delete;
+
+
+    // Compound assignment by product.
+
+    Rational& operator*=(const Rational& other) {
+        *this = *this * other;
+        return *this;
+    }
+
+    template<typename U>
+    Rational& operator*=(U other) requires std::integral<U> {
+        return (*this *= Rational(other));
+    }
+
+    template<typename U>
+    Rational& operator*=(U) = delete;
+
+
+    // Compound assignment by quotient.
+
+    Rational& operator/=(const Rational& other) {
+        *this = *this / other;
+        return *this;
+    }
+
+    template<typename U>
+    Rational& operator/=(U other) requires std::integral<U> {
+        return (*this /= Rational(other));
+    }
+
+    template<typename U>
+    Rational& operator/=(U) = delete;
+
+
     // TODO: add operations with floating point numbers, resulting in floating point numbers.
 
 
