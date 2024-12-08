@@ -178,6 +178,11 @@ public:
     }
 
     template<typename U>
+    bool operator==(U other) const requires std::floating_point<U> {
+        return static_cast<U>(*this) == other;
+    }
+
+    template<typename U>
     bool operator==(U) const = delete;
 
 
@@ -198,6 +203,11 @@ public:
     }
 
     template<typename U>
+    auto operator<=>(U other) const requires std::floating_point<U> {
+        return static_cast<U>(*this) <=> other;
+    }
+
+    template<typename U>
     std::strong_ordering operator<=>(U) const = delete;
 
 
@@ -213,11 +223,21 @@ public:
     }
 
     template<typename U>
+    U operator+(U other) const requires std::floating_point<U> {
+        return static_cast<U>(*this) + other;
+    }
+
+    template<typename U>
     Rational operator+(U) const = delete;
 
     template<typename U>
     friend Rational operator+(U other, const Rational& r) requires std::integral<U> {
         return Rational(other) + r;
+    }
+
+    template<typename U>
+    friend U operator+(U other, const Rational& r) requires std::floating_point<U> {
+        return other + static_cast<U>(r);
     }
 
     template<typename U>
@@ -243,11 +263,21 @@ public:
     }
 
     template<typename U>
+    U operator-(U other) const requires std::floating_point<U> {
+        return static_cast<U>(*this) - other;
+    }
+
+    template<typename U>
     Rational operator-(U) const = delete;
-    
+
     template<typename U>
     friend Rational operator-(U other, const Rational& r) requires std::integral<U> {
         return Rational(other) - r;
+    }
+
+    template<typename U>
+    friend U operator-(U other, const Rational& r) requires std::floating_point<U> {
+        return other - static_cast<U>(r);
     }
 
     template<typename U>
@@ -266,11 +296,21 @@ public:
     }
 
     template<typename U>
+    U operator*(U other) const requires std::floating_point<U> {
+        return static_cast<U>(*this) * other;
+    }
+
+    template<typename U>
     Rational operator*(U) const = delete;
 
     template<typename U>
     friend Rational operator*(U other, const Rational& r) requires std::integral<U> {
         return Rational(other) * r;
+    }
+
+    template<typename U>
+    friend U operator*(U other, const Rational& r) requires std::floating_point<U> {
+        return other * static_cast<U>(r);
     }
 
     template<typename U>
@@ -289,6 +329,11 @@ public:
         return *this / Rational(other);
     }
 
+    template<typename U>
+    U operator/(U other) const requires std::floating_point<U> {
+        return static_cast<U>(*this) / other;
+    }
+
     template <typename U>
     Rational operator/(U) const = delete;
 
@@ -297,8 +342,13 @@ public:
         return Rational(other) / r;
     }
 
+    template<typename U>
+    friend U operator/(U other, const Rational& r) requires std::floating_point<U> {
+        return other / static_cast<U>(r);
+    }
+
     template <typename U>
-    friend Rational operator/(U, const Rational&) = delete;    
+    friend Rational operator/(U, const Rational&) = delete;
 
 
     // Compound assignment by sum.
@@ -365,10 +415,7 @@ public:
     Rational& operator/=(U) = delete;
 
 
-    // TODO: add operations with floating point numbers, resulting in floating point numbers.
-
-
-    // Cast to primitive types.
+    // Casts to numeric types.
 
     template<class U>
     operator U() const requires std::integral<U>{
@@ -377,7 +424,7 @@ public:
 
     template<class U>
     operator U() const requires std::floating_point<U> {
-        return static_cast<U>(n_) / static_cast<U>(d_); 
+        return static_cast<U>(n_) / static_cast<U>(d_);
     }
 
 

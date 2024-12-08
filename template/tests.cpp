@@ -6,18 +6,32 @@
 #include "numbers.h"
 #include "order.h"
 
+template<typename F> constexpr long double kEpsilon;
+template<> constexpr long double kEpsilon<float> = 1e-4;
+template<> constexpr long double kEpsilon<double> = 1e-13;
+template<> constexpr long double kEpsilon<long double> = 0;
+
 template<typename T>
-bool Near(Rational<T> r, double v) {
-    return abs((double)r.Num() / r.Denom() - v) < 1e-12;
+bool Near(Rational<T> r, long double v) {
+    long double rd = static_cast<long double>(r.Num()) /
+            static_cast<long double>(r.Denom());
+    return abs(rd - v) <= 1e-16;
 }
 
-template <typename R, typename T>
+template<typename F>
+bool Near(F f, long double v) requires std::floating_point<F> {
+    return abs((long double)f - v) <= kEpsilon<F>;
+}
+
+template <typename R, typename I, typename F>
 void TestRational(
         const std::string& rational_type,
-        const std::string& integral_type)
+        const std::string& integral_type,
+        const std::string& floating_type)
 {
     std::cerr << "Testing " << rational_type <<
-            " with " << integral_type << "..." << std::endl;
+            " with " << integral_type <<
+            " and " << floating_type << "..." << std::endl;
 
     assert(R(42).Num() == 42);
     assert(R(42).Denom() == 1);
@@ -25,67 +39,117 @@ void TestRational(
     assert((R(1) / R(42)).Denom() == 42);
     assert(R(1) / (R(1) / (R)42) == (R)42);
 
-    for (T n1 = -10; n1 <= 10; n1++) {
-        for (T d1 = -10; d1 <= 10; d1++) {
+    for (I n1 = -10; n1 <= 10; n1++) {
+        for (I d1 = -10; d1 <= 10; d1++) {
             if (d1 == 0) {
                 continue;
             }
 
             R ra = (R)n1 / d1;
-            double da = (double)n1 / d1;
-            T ta = n1 / d1;
+            long double da = (long double)n1 / d1;
+            I ia = n1 / d1;
+            F fa = (F)n1 / d1;
 
-            assert(Near(-ra, -da));
-            assert((int)ra == (int)da);
-            assert((long)ra == (long)da);
-            assert((long long)ra == (long long)da);
-            assert((float)ra == (float)da);
-            assert((double)ra == da);
-            assert((double)floor(ra) == floor(da));
-            assert((double)ceil(ra) == ceil(da));
-            assert((double)trunc(ra) == trunc(da));
-            assert((double)round(ra) == round(da));
-            assert((double)abs(ra) == abs(da));
-
+            assert((long double)-ra == -da);
+            assert((long double)floor(ra) == floor(da));
+            assert((long double)ceil(ra) == ceil(da));
+            assert((long double)trunc(ra) == trunc(da));
+            assert((long double)round(ra) == round(da));
+            assert((long double)abs(ra) == abs(da));
+            static_assert(std::is_same_v<decltype(-ra), R>);
             static_assert(std::is_same_v<decltype(floor(ra)), R>);
             static_assert(std::is_same_v<decltype(ceil(ra)), R>);
             static_assert(std::is_same_v<decltype(trunc(ra)), R>);
             static_assert(std::is_same_v<decltype(round(ra)), R>);
             static_assert(std::is_same_v<decltype(abs(ra)), R>);
 
-            for (T n2 = -10; n2 <= 10; n2++) {
-                for (T d2 = -10; d2 <= 10; d2++) {
+            assert((I)ra == (I)da);
+            assert((F)ra == (F)da);
+
+            for (I n2 = -10; n2 <= 10; n2++) {
+                for (I d2 = -10; d2 <= 10; d2++) {
                     if (d2 == 0) {
                         continue;
                     }
 
                     R rb = (R)n2 / d2;
-                    double db = (double)n2 / d2;
-                    T ib = n2 / d2;
+                    long double db = (long double)n2 / d2;
+                    I ib = n2 / d2;
+                    F fb = (F)n2 / d2;
+
 
                     assert((ra == rb) == (da == db));
                     assert((ra == ib) == (da == ib));
-                    assert((ta == rb) == (ta == db));
+                    assert((ia == rb) == (ia == db));
+                    static_assert(std::is_same_v<decltype(ra == rb), bool>);
+                    static_assert(std::is_same_v<decltype(ra == ib), bool>);
+                    static_assert(std::is_same_v<decltype(ia == rb), bool>);
 
                     assert((ra <=> rb) == (da <=> db));
                     assert((ra <=> ib) == (da <=> ib));
-                    assert((ta <=> rb) == (ta <=> db));
+                    assert((ia <=> rb) == (ia <=> db));
+                    static_assert(std::is_same_v<decltype(ra <=> rb), std::strong_ordering>);
+                    static_assert(std::is_same_v<decltype(ra <=> ib), std::strong_ordering>);
+                    static_assert(std::is_same_v<decltype(ia <=> rb), std::strong_ordering>);
+                    
+
+                    // Comparisons between rationals and floats are tested only
+                    // on on power-of-2 denominators, when exact comparisons
+                    // of floats are reliable.
+                    if (d1 & (d1 - 1) == 0 && d2 & (d2 - 1) == 0) {
+                        assert((ra == fb) == (da == fb));
+                        assert((fa == rb) == (fa == db));
+                        assert((ra <=> fb) == (da <=> fb));
+                        assert((fa <=> rb) == (fa <=> db));
+                    }
+                    static_assert(std::is_same_v<decltype(ra == fb), bool>);
+                    static_assert(std::is_same_v<decltype(fa == rb), bool>);
+                    static_assert(std::is_same_v<decltype(ra <=> fb), decltype(ra <=> db)>);
+                    static_assert(std::is_same_v<decltype(fa <=> rb), decltype(fa <=> db)>);
 
                     assert(Near(ra + rb, da + db));
                     assert(Near(ra + ib, da + ib));
-                    assert(Near(ta + rb, ta + db));
+                    assert(Near(ra + fb, da + fb));
+                    assert(Near(ia + rb, ia + db));
+                    assert(Near(fa + rb, fa + db));
+                    static_assert(std::is_same_v<decltype(ra + rb), R>);
+                    static_assert(std::is_same_v<decltype(ra + ib), R>);
+                    static_assert(std::is_same_v<decltype(ra + fb), F>);
+                    static_assert(std::is_same_v<decltype(ia + rb), R>);
+                    static_assert(std::is_same_v<decltype(fa + rb), F>);
 
                     assert(Near(ra - rb, da - db));
                     assert(Near(ra - ib, da - ib));
-                    assert(Near(ta - rb, ta - db));
+                    assert(Near(ra - fb, da - fb));
+                    assert(Near(ia - rb, ia - db));
+                    assert(Near(fa - rb, fa - db));
+                    static_assert(std::is_same_v<decltype(ra - rb), R>);
+                    static_assert(std::is_same_v<decltype(ra - ib), R>);
+                    static_assert(std::is_same_v<decltype(ra - fb), F>);
+                    static_assert(std::is_same_v<decltype(ia - rb), R>);
+                    static_assert(std::is_same_v<decltype(fa - rb), F>);
 
                     assert(Near(ra * rb, da * db));
                     assert(Near(ra * ib, da * ib));
-                    assert(Near(ta * rb, ta * db));
+                    assert(Near(ra * fb, da * fb));
+                    assert(Near(ia * rb, ia * db));
+                    assert(Near(fa * rb, fa * db));
+                    static_assert(std::is_same_v<decltype(ra * rb), R>);
+                    static_assert(std::is_same_v<decltype(ra * ib), R>);
+                    static_assert(std::is_same_v<decltype(ra * fb), F>);
+                    static_assert(std::is_same_v<decltype(ia * rb), R>);
+                    static_assert(std::is_same_v<decltype(fa * rb), F>);
 
                     if (n2 != 0) assert(Near(ra / rb, da / db));
                     if (ib != 0) assert(Near(ra / ib, da / ib));
-                    if (n2 != 0) assert(Near(ta / rb, ta / db));
+                    if (fb != 0) assert(Near(ra / fb, da / fb));
+                    if (n2 != 0) assert(Near(ia / rb, ia / db));
+                    if (n2 != 0) assert(Near(fa / rb, fa / db));
+                    static_assert(std::is_same_v<decltype(ra / rb), R>);
+                    static_assert(std::is_same_v<decltype(ra / ib), R>);
+                    static_assert(std::is_same_v<decltype(ra / fb), F>);
+                    static_assert(std::is_same_v<decltype(ia / rb), R>);
+                    static_assert(std::is_same_v<decltype(fa / rb), F>);
 
                     { R t = ra; t += rb; assert(Near(t, da + db)); }
                     { R t = ra; t += ib; assert(Near(t, da + ib)); }
@@ -105,28 +169,28 @@ void TestRational(
 
     // Add some numbers to make sure there's no overflow.
     R acc = 0;
-    for (T i = 0; i < 1000; i++) {
+    for (I i = 0; i < 1000; i++) {
         acc += (R)i / 1000;
     }
     assert (acc == (R)999 / 2);
 
     // Subtract some numbers to make sure there's no overflow.
     acc = 0;
-    for (T i = 0; i < 1000; i++) {
+    for (I i = 0; i < 1000; i++) {
         acc -= (R)i / 1000;
     }
     assert (acc == (R)-999 / 2);
 
     // Multiply some numbers to make sure there's no overflow.
     acc = 1;
-    for (T i = 1; i < 1000; i++) {
+    for (I i = 1; i < 1000; i++) {
         acc *= ((R)(i + 1) / i);
     }
     assert (acc == 1000);
 
     // Divide some numbers to make sure there's no overflow.
     acc = 1;
-    for (T i = 1; i < 1000; i++) {
+    for (I i = 1; i < 1000; i++) {
         acc /= ((R)(i + 1) / i);
     }
     assert (acc == (R)1 / 1000);
@@ -173,11 +237,11 @@ int main() {
         assert(RoundDiv(i, 10) == round((double)i / 10));
     }
 
-    TestRational<Rat, int>("Rat", "int");
-    TestRational<LRat, long>("LRat", "long");
-    TestRational<LLRat, long long>("LLRat", "long long");
-    TestRational<Rat, long long>("Rat", "long long");
-    TestRational<LLRat, int>("LLRat", "int");
+    TestRational<Rat, int, float>("Rat", "int", "float");
+    TestRational<LRat, long, double>("LRat", "long", "double");
+    TestRational<LLRat, long long, long double>("LLRat", "long long", "long double");
+    TestRational<Rat, long long, double>("Rat", "long long", "double");
+    TestRational<LLRat, int, double>("LLRat", "int", "double");
 
     std::cerr << "Testing Rational conversions..." << std::endl;
     assert((LLRat)((Rat)2 / 3) == (LLRat)2 / 3);
