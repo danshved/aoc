@@ -2,6 +2,9 @@
 #define __AOC_NUMBERS_H__
 
 #include <cassert>
+#include <compare>
+#include <concepts>
+#include <ostream>
 #include <utility>
 #include <vector>
 
@@ -37,7 +40,7 @@ std::pair<T, T> Euclid(T a, T b) {
     return std::make_pair(xa, ya);
 }
 
-// Multiplicative inverse element in Z_m. The result is normalized to be
+// Multiplicative inverse element in Z/mZ. The result is normalized to be
 // within [0, abs(m)).
 //
 // Inverse (x, m) * x == 1  (mod m).
@@ -52,12 +55,16 @@ T Inverse(T x, T m) {
     T y, n;
     std::tie(y, n) = Euclid(x, m);
     assert (x * y + m * n == 1);
-    y %= m;
-    if (y < 0) {
-        y += m;
+    if (m != 0) {
+        y %= m;
+        if (y < 0) {
+            y += m;
+        }
     }
     return y;
 }
+
+// Divisions with different sorts of rounding.
 
 // Generates all primes that are less than bound, in ascending order.
 // Time: O(bound * log log bound).
@@ -78,5 +85,218 @@ std::vector<T> GetPrimes(T bound) {
 
     return result;
 }
+
+// Divide and round towards -infinity.
+template<typename T>
+T FloorDiv(T a, T b) {
+    if (b < 0) {
+        a = -a;
+        b = -b;
+    }
+    return (a >= 0) ? (a / b) : ((a - b + 1) / b);
+}
+
+// Divide and round towards +infinity.
+template<typename T>
+T CeilDiv(T a, T b) {
+    if (b < 0) {
+        a = -a;
+        b = -b;
+    }
+    return (a >= 0) ? ((a + b - 1) / b) : (a / b);
+}
+
+// Divide and rounds towards 0.
+template<typename T>
+T TruncDiv(T a, T b) {
+    return a / b;
+}
+
+// Divide and round to nearest integer, rounding half-integers away from 0.
+template<typename T>
+T RoundDiv(T a, T b) {
+    if (b < 0) {
+        a = -a;
+        b = -b;
+    }
+    return (a >= 0) ? ((2 * a + b) / (2 * b)) : ((2 * a - b) / (2 * b));
+}
+
+// Rational numbers. T is the type of numerator and denominator.
+template<typename T>
+class Rational {
+public:
+    Rational() : n_(0), d_(1) {}
+    Rational(T x) : n_(x), d_(1) {}
+
+    Rational(const Rational&) = default;
+    Rational& operator=(const Rational&) = default;
+    Rational(Rational&&) = default;
+    Rational& operator=(Rational&&) = default;
+
+    template<typename U>
+    explicit Rational(const Rational<U>& other) :
+        n_(static_cast<T>(other.Num())), d_(static_cast<T>(other.Denom())) {}
+
+    T Num() const {
+        return n_;
+    }
+
+    T Denom() const {
+        return d_;
+    }
+
+    Rational Normal() const {
+        T x = Gcd(n_, d_) * ((d_ < 0) ? -1 : 1);
+        return Rational{n_ / x, d_ / x};
+    }
+
+    friend std::ostream& operator<<(std::ostream& out, const Rational& r) {
+        Rational s = r.Normal();
+        if (s.d_ == 1) {
+            return out << s.n_;
+        }
+        return out << s.n_ << '/' << s.d_;
+    }
+
+    bool operator==(const Rational& other) const {
+        return n_ * other.d_ == other.n_ * d_;
+    }
+    bool operator==(T other) const {
+        return *this == Rational(other);
+    }
+    template <typename U> bool operator==(U other) const = delete;
+
+    std::strong_ordering operator<=>(const Rational& other) const {
+        Rational x = *this - other;
+        return (x.d_ > 0) ? (x.n_ <=> 0) : (0 <=> x.n_);
+    }
+    std::strong_ordering operator<=>(T other) const {
+        return *this <=> Rational(other);
+    }
+    template <typename U> std::strong_ordering operator<=>(U other) const = delete;
+
+    Rational operator+(const Rational& other) const {
+        return Rational(n_ * other.d_ + other.n_ * d_, d_ * other.d_).Normal();
+    }
+    Rational operator+(T other) const {
+        return *this + Rational(other);
+    }
+    friend Rational operator+(T other, const Rational& r) {
+        return Rational(other) + r;
+    }
+    template <typename U> Rational operator+(U) const = delete;
+    template <typename U> friend Rational operator+(U, const Rational&) = delete;
+
+
+    Rational operator-() const {
+        return Rational(-n_, d_);
+    }
+
+    Rational operator-(const Rational& other) const {
+        return Rational(n_ * other.d_ - other.n_ * d_, d_ * other.d_).Normal();
+    }
+    Rational operator-(T other) const {
+        return *this - Rational(other);
+    }
+    friend Rational operator-(T other, const Rational& r) {
+        return Rational(other) - r;
+    }
+    template <typename U> Rational operator-(U) const = delete;
+    template <typename U> friend Rational operator-(U, const Rational&) = delete;
+
+    Rational operator*(const Rational& other) const {
+        return Rational(n_ * other.n_, d_ * other.d_).Normal();
+    }
+    Rational operator*(T other) const {
+        return *this * Rational(other);
+    }
+    friend Rational operator*(T other, const Rational& r) {
+        return Rational(other) * r;
+    }
+    template <typename U> Rational operator*(U) const = delete;
+    template <typename U> friend Rational operator*(U, const Rational&) = delete;
+
+    Rational operator/(const Rational& other) const {
+        assert (other.n_ != 0);
+        return Rational(n_ * other.d_, other.n_ * d_).Normal();
+    }
+    Rational operator/(T other) const {
+        return *this / Rational(other);
+    }
+    friend Rational operator/(T other, const Rational& r) {
+        return Rational(other) / r;
+    }
+    template <typename U> Rational operator/(U) const = delete;
+    template <typename U> friend Rational operator/(U, const Rational&) = delete;    
+
+    // TODO: add operations with floating point numbers, resulting in floating point numbers.
+    // TODO: (?) add operations with Rational<U> resulting in Rational of the stronger type.
+    // TODO: (?) add operations with integral types other than T, resulting in Rational of the stronger type.
+
+    operator T() const {
+        return n_ / d_;
+    }
+
+    template<class U>
+    operator U() const requires std::floating_point<U> {
+        return static_cast<U>(n_) / static_cast<U>(d_); 
+    }
+
+    Rational Floor() const {
+        return FloorDiv<T>(n_, d_);
+    }
+
+    Rational Ceil() const {
+        return CeilDiv<T>(n_, d_);
+    }
+
+    Rational Trunc() const {
+        return TruncDiv<T>(n_, d_);
+    }
+
+    Rational Round() const {
+        return RoundDiv<T>(n_, d_);
+    }
+
+    Rational Abs() const {
+        return Rational(std::abs(n_), std::abs(d_));
+    }
+
+private:
+    Rational(T num, T denom) : n_(num), d_(denom) {}
+
+    T n_;
+    T d_;
+};
+
+template<typename T>
+Rational<T> floor(const Rational<T>& r) {
+    return r.Floor();
+}
+
+template<typename T>
+Rational<T> ceil(const Rational<T>& r) {
+    return r.Ceil();
+}
+
+template<typename T>
+Rational<T> trunc(const Rational<T>& r) {
+    return r.Trunc();
+}
+
+template<typename T>
+Rational<T> round(const Rational<T>& r) {
+    return r.Round();
+}
+
+template<typename T>
+Rational<T> abs(const Rational<T>& r) {
+    return r.Abs();
+}
+
+using Rat = Rational<int>;
+using LRat = Rational<long>;
+using LLRat = Rational<long long>;
 
 #endif
