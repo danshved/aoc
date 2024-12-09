@@ -41,10 +41,6 @@ int main() {
     std::string input = Trim(GetContents("input.txt"));
     int n = (input.length() + 1) / 2;
 
-<<<<<<< HEAD
-=======
-
->>>>>>> bedbadbd2946786cfa03e41576bbd42bd2b372e9
     std::vector<int> disk;
     std::vector<Span> files;
 
