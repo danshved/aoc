@@ -42,7 +42,7 @@ void Visit(int i, int j) {
 
 void VisitFence(int i, int j, int dir) {
     visited_fence[i][j][dir] = true;
-    for (int d = 1; d < 4; d += 2) {
+    for (int d = 1; d <= 3; d += 2) {
         int dir2 = (dir + d) % 4;
         int i1 = i + dirs[dir2][0];
         int j1 = j + dirs[dir2][1];
