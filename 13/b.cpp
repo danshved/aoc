@@ -56,11 +56,10 @@ int main() {
         Machine m = ParseMachine(par);
 
         long long d = Det(m.ax, m.ay, m.bx, m.by);
-        assert (d != 0);
-
         long long i = Det(m.prize_x, m.prize_y, m.bx, m.by);
         long long j = Det(m.ax, m.ay, m.prize_x, m.prize_y);
 
+        assert (d != 0);
         if (i % d != 0 || j % d != 0) {
             continue;
         }
