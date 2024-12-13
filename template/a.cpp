@@ -12,8 +12,9 @@
 #include <utility>
 #include <vector>
 
-#include "order.h"
+#include "collections.h"
 #include "numbers.h"
+#include "order.h"
 #include "parse.h"
 
 int main() {
