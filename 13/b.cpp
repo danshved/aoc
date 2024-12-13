@@ -51,7 +51,6 @@ int main() {
     std::vector<std::vector<std::string>> pars = Split(Split(Trim(GetContents("input.txt")), '\n'), std::string());
 
     long long answer = 0;
-
     for (const std::vector<std::string>& par : pars) {
         Machine m = ParseMachine(par);
 
