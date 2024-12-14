@@ -52,7 +52,7 @@ void PrintRobots(const std::vector<Robot> robots, S& out) {
     out << std::endl;
 }
 
-int VarX(const std::vector<Robot> robots) {
+int VarX(const std::vector<Robot>& robots) {
     int sum = 0, sum_sq = 0;
     for (const Robot& r : robots) {
         sum += r.x;
@@ -61,7 +61,7 @@ int VarX(const std::vector<Robot> robots) {
     return sum_sq * robots.size() - sum * sum;
 }
 
-int VarY(const std::vector<Robot> robots) {
+int VarY(const std::vector<Robot>& robots) {
     int sum = 0, sum_sq = 0;
     for (const Robot& r : robots) {
         sum += r.y;
@@ -84,14 +84,12 @@ int main() {
         if (var_x < 100000000) {
             out << "Low X variance: " << t << " " << var_x << std::endl;
             PrintRobots(robots, out);
-            out.flush();
         }
 
         int var_y = VarY(robots);
         if (var_y < 100000000) {
             out << "Low Y variance: " << t << " " << var_y << std::endl;
             PrintRobots(robots, out);
-            out.flush();
         }
 
         if (var_x < 100000000 && var_y < 100000000) {
