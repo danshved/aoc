@@ -52,7 +52,7 @@ void PrintRobots(const std::vector<Robot> robots, S& out) {
     out << std::endl;
 }
 
-int DivX(const std::vector<Robot> robots) {
+int DispX(const std::vector<Robot> robots) {
     int sum = 0, sum_sq = 0;
     for (const Robot& r : robots) {
         sum += r.x;
@@ -61,7 +61,7 @@ int DivX(const std::vector<Robot> robots) {
     return sum_sq * robots.size() - sum * sum;
 }
 
-int DivY(const std::vector<Robot> robots) {
+int DispY(const std::vector<Robot> robots) {
     int sum = 0, sum_sq = 0;
     for (const Robot& r : robots) {
         sum += r.y;
@@ -80,21 +80,21 @@ int main() {
     std::ofstream out("output.txt");
     int t;
     for (t = 0; t <= 1000000000; t++) {
-        int div_x = DivX(robots);
-        if (div_x < 100000000) {
-            out << "Low X div: " << t << " " << div_x << std::endl;
+        int disp_x = DispX(robots);
+        if (disp_x < 100000000) {
+            out << "Low X dispersion: " << t << " " << disp_x << std::endl;
             PrintRobots(robots, out);
             out.flush();
         }
 
-        int div_y = DivY(robots);
-        if (div_y < 100000000) {
-            out << "Low Y div: " << t << " " << div_y << std::endl;
+        int disp_y = DispY(robots);
+        if (disp_y < 100000000) {
+            out << "Low Y dispersion: " << t << " " << disp_y << std::endl;
             PrintRobots(robots, out);
             out.flush();
         }
 
-        if (div_x < 100000000 && div_y < 100000000) {
+        if (disp_x < 100000000 && disp_y < 100000000) {
             break;
         }
 
