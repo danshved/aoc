@@ -52,7 +52,7 @@ void PrintRobots(const std::vector<Robot> robots, S& out) {
     out << std::endl;
 }
 
-int DispX(const std::vector<Robot> robots) {
+int VarX(const std::vector<Robot> robots) {
     int sum = 0, sum_sq = 0;
     for (const Robot& r : robots) {
         sum += r.x;
@@ -61,7 +61,7 @@ int DispX(const std::vector<Robot> robots) {
     return sum_sq * robots.size() - sum * sum;
 }
 
-int DispY(const std::vector<Robot> robots) {
+int VarY(const std::vector<Robot> robots) {
     int sum = 0, sum_sq = 0;
     for (const Robot& r : robots) {
         sum += r.y;
@@ -79,22 +79,22 @@ int main() {
 
     std::ofstream out("output.txt");
     int t;
-    for (t = 0; t <= 1000000000; t++) {
-        int disp_x = DispX(robots);
-        if (disp_x < 100000000) {
-            out << "Low X dispersion: " << t << " " << disp_x << std::endl;
+    for (t = 0; t < kSizeX * kSizeY; t++) {
+        int var_x = VarX(robots);
+        if (var_x < 100000000) {
+            out << "Low X variance: " << t << " " << var_x << std::endl;
             PrintRobots(robots, out);
             out.flush();
         }
 
-        int disp_y = DispY(robots);
-        if (disp_y < 100000000) {
-            out << "Low Y dispersion: " << t << " " << disp_y << std::endl;
+        int var_y = VarY(robots);
+        if (var_y < 100000000) {
+            out << "Low Y variance: " << t << " " << var_y << std::endl;
             PrintRobots(robots, out);
             out.flush();
         }
 
-        if (disp_x < 100000000 && disp_y < 100000000) {
+        if (var_x < 100000000 && var_y < 100000000) {
             break;
         }
 
