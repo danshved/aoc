@@ -49,11 +49,9 @@ int main() {
 
     // Transform the matrix for part 2.
     for (const std::string& s : pre_matrix) {
-        std::ostringstream oss;
-        for (char c : s) {
-            oss << kSubst.at(c);
-        }
-        matrix.push_back(oss.str());
+        matrix.push_back(ConcatMap(s, [](char c) {
+            return kSubst.at(c);
+        }));
     }
     height = matrix.size();
     width = matrix[0].size();
