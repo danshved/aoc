@@ -5,6 +5,7 @@
 #include <map>
 #include <optional>
 #include <queue>
+#include <ranges>
 #include <set>
 #include <string>
 #include <tuple>
@@ -45,6 +46,7 @@ bool InBounds(Coord c) {
 }
 
 Coord SecondHalf(Coord c) {
+    assert(matrix[c.i][c.j] == '[' || matrix[c.i][c.j] == ']');
     return (matrix[c.i][c.j] == '[') ? Coord{c.i, c.j + 1} : Coord{c.i, c.j - 1};
 }
 
@@ -77,8 +79,12 @@ int main() {
 
     for (char c : moves) {
         Coord d = kDirs[c];
+
+        // BFS bookkeeping.
         std::queue<Coord> q;
         std::vector<std::vector<bool>> added(height, std::vector<bool>(width, false));
+
+        // BFS output.
         std::vector<Coord> to_move;
         bool stuck = false;
 
@@ -117,16 +123,15 @@ int main() {
                 }
             }
         }
-        if (stuck) {
-            continue;
-        }
 
         // Now move everything that needs to be moved at once.
-        for (auto it = to_move.rbegin(); it != to_move.rend(); it++) {
-            matrix[it->i + d.i][it->j + d.j] = std::exchange(matrix[it->i][it->j], '.');
+        if (!stuck) {
+            for (const auto& [i, j] : to_move | std::views::reverse) {
+                matrix[i + d.i][j + d.j] = std::exchange(matrix[i][j], '.');
+            }
+            robot.i += d.i;
+            robot.j += d.j;
         }
-        robot.i += d.i;
-        robot.j += d.j;
     }
 
     // Compute the answer.
