@@ -19,24 +19,16 @@
 #include "order.h"
 #include "parse.h"
 
-const std::unordered_map<char, std::string> kSubst = {
-    {'#', "##"},
-    {'.', ".."},
-    {'O', "[]"},
-    {'@', "@."},
-};
-
 struct Coord {
     int i;
     int j;
 };
 
-const std::unordered_map<char, Coord> kDirs = {
-    {'^', {-1, 0}},
-    {'v', {1, 0}},
-    {'<', {0, -1}},
-    {'>', {0, 1}},
-};
+const std::unordered_map<char, std::string> kSubst =
+    {{'#', "##"}, {'.', ".."}, {'O', "[]"}, {'@', "@."}};
+
+const std::unordered_map<char, Coord> kDirs =
+    {{'^', {-1, 0}}, {'v', {1, 0}}, {'<', {0, -1}}, {'>', {0, 1}}};
 
 std::vector<std::string> matrix;
 int height, width;
