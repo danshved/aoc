@@ -30,12 +30,29 @@ std::vector<C> Transpose(const std::vector<C>& v) {
     return result;
 }
 
-// Concatenates a vector of containers into a single container of the same type.
+// Concatenates a container of containers into a single container of the same
+// type as the inner containers.
 template<typename C>
-C Concat(const std::vector<C>& v) {
-    C result;
-    for (const C& c : v) {
-        std::copy(std::begin(c), std::end(c), std::back_inserter(result));
+C::value_type Concat(const C& xss) {
+    typename C::value_type result;
+    for (const auto& xs : xss) {
+        std::copy(std::begin(xs), std::end(xs), std::back_inserter(result));
+    }
+    return result;
+}
+
+// Applies a container-returning function to each element of the container and
+// concatenates the results.
+//
+// The result is the same type of container that the function returns. If it
+// returns vectors, the result is a vector. If it returns strings, a string.
+template<typename C, typename F>
+auto ConcatMap(const C& xs, F f) -> decltype(f(*std::begin(xs))) {
+    using OutputC = decltype(f(*std::begin(xs)));
+    OutputC result;
+    for (const auto& x : xs) {
+        OutputC ys = f(x);
+        std::copy(std::begin(ys), std::end(ys), std::back_inserter(result));
     }
     return result;
 }
