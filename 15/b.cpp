@@ -18,26 +18,34 @@
 #include "order.h"
 #include "parse.h"
 
-struct Dir {
-    int di;
-    int dj;
+std::unordered_map<char, std::string> subst = {
+    {'#', "##"},
+    {'.', ".."},
+    {'O', "[]"},
+    {'@', "@."},
 };
 
-std::unordered_map<char, Dir> kDirs = {
+struct Coord {
+    int i;
+    int j;
+};
+
+std::unordered_map<char, Coord> kDirs = {
     {'^', {-1, 0}},
     {'v', {1, 0}},
     {'<', {0, -1}},
     {'>', {0, 1}},
 };
 
+std::vector<std::string> matrix;
 int height, width;
-bool InBounds(int i, int j) {
-    return i >= 0 && i < height && j >= 0 && j < width;
+
+bool InBounds(Coord c) {
+    return c.i >= 0 && c.i < height && c.j >= 0 && c.j < width;
 }
 
-void PrintMap(std::vector<std::string> matrix, int i, int j) {
-    matrix[i][j] = '@';
-    std::cout << FormatVector(matrix, "\n") << std::endl;
+Coord SecondHalf(Coord c) {
+    return (matrix[c.i][c.j] == '[') ? Coord{c.i, c.j + 1} : Coord{c.i, c.j - 1};
 }
 
 int main() {
@@ -45,97 +53,67 @@ int main() {
     auto [pre_matrix, bottom] = Split2(lines, std::string());
     std::string moves = Concat(bottom);
 
-    std::vector<std::string> matrix;
+    // Transform the matrix for part 2.
     for (const std::string& s : pre_matrix) {
-        std::string s2;
+        std::ostringstream oss;
         for (char c : s) {
-            switch (c) {
-                case '#':
-                    s2 += "##";
-                    break;
-                case '.':
-                    s2 += "..";
-                    break;
-                case '@':
-                    s2 += "@.";
-                    break;
-                case 'O':
-                    s2 += "[]";
-                    break;
-                default:
-                    assert(false);
-                    break;
-            }
+            oss << subst[c];
         }
-        matrix.push_back(std::move(s2));
+        matrix.push_back(oss.str());
     }
     height = matrix.size();
     width = matrix[0].size();
 
-    std::cout << moves.size() << " " << height << " " << width << std::endl;
-
-    int i = 0, j = 0;
-    for (i = 0; i < height; i++) {
-        std::string::size_type p = matrix[i].find('@');
-        if (p != std::string::npos) {
-            j = p;
+    // Locate the robot.
+    Coord robot;
+    for (robot.i = 0; robot.i < height; robot.i++) {
+        robot.j = matrix[robot.i].find('@');
+        if (robot.j != std::string::npos) {
             break;
         }
     }
-    assert(i < height);
-    matrix[i][j] = '.';
+    assert(robot.i < height);
+    matrix[robot.i][robot.j] = '.';
 
     for (char c : moves) {
-        Dir d = kDirs[c];
-
-        // PrintMap(matrix, i, j);
-        // std::cout << c << " " << d.di << " " << d.dj << std::endl;
-
-        std::queue<std::pair<int, int>> q;
-        std::vector<std::pair<int, int>> to_move;
+        Coord d = kDirs[c];
+        std::queue<Coord> q;
         std::vector<std::vector<bool>> added(height, std::vector<bool>(width, false));
+        std::vector<Coord> to_move;
         bool stuck = false;
 
-        q.push(std::make_pair(i, j));
-        // std::cout << "pushed " << i << " " << j << std::endl;
+        // Breadth first search to build the list of all cells to_move. The
+        // list will be ordered so that each cell comes before its blockers.
+        q.push(robot);
+        added[robot.i][robot.j] = true;
         while (!q.empty()) {
-            auto [cur_i, cur_j] = q.front();
+            Coord pusher = q.front();
             q.pop();
-            // std::cout << "popped " << cur_i << " " << cur_j << std::endl;
-            int i1 = cur_i + d.di;
-            int j1 = cur_j + d.dj;
-            // std::cout << "looking at " << i1 << " " << j1 << std::endl;
-            // std::cout << "i1, j1 = " << i1 << " " << j1 << std::endl;
-            if (!InBounds(i1, j1) || matrix[i1][j1] == '#') {
+
+            // See where the current cell ("the pusher") wants to move.
+            Coord next = {pusher.i + d.i, pusher.j + d.j};
+            if (!InBounds(next) || matrix[next.i][next.j] == '#') {
                 stuck = true;
-                // std::cout << "stuck" << std::endl;
                 break;
             }
-            if (matrix[i1][j1] == '.') {
-                // std::cout << "void" << std::endl;
+            if (matrix[next.i][next.j] == '.') {
                 continue;
             }
 
-            if (added[i1][j1]) {
-                // std::cout << "old" << std::endl;
-                continue;
+            // Build the list of cells that the pusher is pushing. It's pushing
+            // one cell if moving horizontally and two cells ("[]") if moving
+            // vertically.
+            std::vector<Coord> pushees = {next};
+            if (d.i != 0) {
+                pushees.push_back(SecondHalf(next));
             }
-            q.push(std::make_pair(i1, j1));
-            // std::cout << "pushed " << i1 << " " << j1 << std::endl;
-            to_move.push_back(std::make_pair(i1, j1));
-            added[i1][j1] = true;
-            // std::cout << "added " << i1 << " " << j1 << std::endl;
-            if (d.di != 0) {
-                int i2 = i1;
-                assert(matrix[i1][j1] == '[' || matrix[i1][j1] == ']');
-                int j2 = (matrix[i1][j1] == '[' ? j1 + 1 : (j1 - 1));
-                if (!added[i2][j2]) {
-                    q.push(std::make_pair(i2, j2));
-                    // std::cout << "pushed " << i2 << " " << j2 << std::endl;
 
-                    to_move.push_back(std::make_pair(i2, j2));
-                    added[i2][j2] = true;
-                    // std::cout << "added " << i2 << " " << j2 << std::endl;
+            // Add the cells being pushed to the queue.
+            for (const Coord& pushee : pushees) {
+                if (!added[pushee.i][pushee.j]) {
+                    q.push(pushee);
+                    added[pushee.i][pushee.j] = true;
+                    to_move.push_back(pushee);
                 }
             }
         }
@@ -143,20 +121,20 @@ int main() {
             continue;
         }
 
+        // Now move everything that needs to be moved at once.
         for (auto it = to_move.rbegin(); it != to_move.rend(); it++) {
-            auto [i2, j2] = *it;
-            matrix[i2 + d.di][j2 + d.dj] = std::exchange(matrix[i2][j2], '.');
+            matrix[it->i + d.i][it->j + d.j] = std::exchange(matrix[it->i][it->j], '.');
         }
-        i += d.di;
-        j += d.dj;
+        robot.i += d.i;
+        robot.j += d.j;
     }
-    PrintMap(matrix, i, j);
 
+    // Compute the answer.
     int answer = 0;
-    for (i = 0; i < height; i++) {
-        for (j = 0; j < width; j++) {
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
             if (matrix[i][j] == '[') {
-                answer += 100 * (i) + (j);
+                answer += 100 * i + j;
             }
         }
     }

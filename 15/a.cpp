@@ -41,29 +41,22 @@ int main() {
     height = matrix.size();
     width = matrix[0].size();
 
-    std::cout << moves.size() << " " << height << " " << width << std::endl;
-
     int i = 0, j = 0;
     for (i = 0; i < height; i++) {
-        std::string::size_type p = matrix[i].find('@');
-        if (p != std::string::npos) {
-            j = p;
+        j = matrix[i].find('@');
+        if (j != std::string::npos) {
             break;
         }
     }
     assert(i < height);
     matrix[i][j] = '.';
-    std::cout << i << " " << j << std::endl;
 
     for (char c : moves) {
-        // auto m2 = matrix;
-        // m2[i][j] = '@';
-        // std::cout << FormatVector(m2, "\n") << std::endl;
-
         Dir d = kDirs[c];
-        // std::cout << c << " " << d.di << " " << d.dj << std::endl;
         int k = 1;
-        for (; InBounds(i + k * d.di, j + k * d.dj) && matrix[i + k * d.di][j + k * d.dj] == 'O'; k++);
+        while(InBounds(i + k * d.di, j + k * d.dj) && matrix[i + k * d.di][j + k * d.dj] == 'O'){
+            k++;
+        }
         if (!InBounds(i + k * d.di, j + k * d.dj) || matrix[i + k * d.di][j + k * d.dj] != '.') {
             continue;
         }
@@ -72,15 +65,12 @@ int main() {
         i += d.di;
         j += d.dj;
     }
-    // auto m2 = matrix;
-    // m2[i][j] = '@';
-    // std::cout << FormatVector(m2, "\n") << std::endl;
 
     int answer = 0;
     for (i = 0; i < height; i++) {
         for (j = 0; j < width; j++) {
             if (matrix[i][j] == 'O') {
-                answer += 100 * (i) + (j);
+                answer += 100 * i + j;
             }
         }
     }
