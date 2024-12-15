@@ -45,7 +45,7 @@ Coord SecondHalf(Coord c) {
 int main() {
     std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), '\n');
     auto [pre_matrix, bottom] = Split2(lines, std::string());
-    std::string moves = Concat(bottom);
+    std::string moves = Concat(std::move(bottom));
 
     // Transform the matrix for part 2.
     for (const std::string& s : pre_matrix) {
@@ -58,13 +58,7 @@ int main() {
 
     // Locate the robot.
     Coord robot;
-    for (robot.i = 0; robot.i < height; robot.i++) {
-        robot.j = matrix[robot.i].find('@');
-        if (robot.j != std::string::npos) {
-            break;
-        }
-    }
-    assert(robot.i < height);
+    std::tie(robot.i, robot.j) = FindOrDie<2>(matrix, '@');
     matrix[robot.i][robot.j] = '.';
 
     for (char c : moves) {
