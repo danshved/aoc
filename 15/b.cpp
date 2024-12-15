@@ -19,7 +19,7 @@
 #include "order.h"
 #include "parse.h"
 
-std::unordered_map<char, std::string> subst = {
+const std::unordered_map<char, std::string> kSubst = {
     {'#', "##"},
     {'.', ".."},
     {'O', "[]"},
@@ -31,7 +31,7 @@ struct Coord {
     int j;
 };
 
-std::unordered_map<char, Coord> kDirs = {
+const std::unordered_map<char, Coord> kDirs = {
     {'^', {-1, 0}},
     {'v', {1, 0}},
     {'<', {0, -1}},
@@ -59,7 +59,7 @@ int main() {
     for (const std::string& s : pre_matrix) {
         std::ostringstream oss;
         for (char c : s) {
-            oss << subst[c];
+            oss << kSubst.at(c);
         }
         matrix.push_back(oss.str());
     }
@@ -78,7 +78,7 @@ int main() {
     matrix[robot.i][robot.j] = '.';
 
     for (char c : moves) {
-        Coord d = kDirs[c];
+        Coord d = kDirs.at(c);
 
         // BFS bookkeeping.
         std::queue<Coord> q;

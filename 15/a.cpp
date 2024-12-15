@@ -22,7 +22,7 @@ struct Dir {
     int dj;
 };
 
-std::unordered_map<char, Dir> kDirs = {
+const std::unordered_map<char, Dir> kDirs = {
     {'^', {-1, 0}},
     {'v', {1, 0}},
     {'<', {0, -1}},
@@ -52,7 +52,7 @@ int main() {
     matrix[i][j] = '.';
 
     for (char c : moves) {
-        Dir d = kDirs[c];
+        Dir d = kDirs.at(c);
         int k = 1;
         while(InBounds(i + k * d.di, j + k * d.dj) && matrix[i + k * d.di][j + k * d.dj] == 'O'){
             k++;
