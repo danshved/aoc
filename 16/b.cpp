@@ -29,19 +29,9 @@ struct Coord {
 
 const Coord kDirs[4] = {{0, 1}, {-1, 0}, {0, -1}, {1, 0}};
 enum { kEast, kNorth, kWest, kSouth };
-
 const int kInf = std::numeric_limits<int>::max();
 
-template <typename T>
-using VVV = std::vector<std::vector<std::vector<T>>>;
-
-template <typename T>
-VVV<T> MakeVVV(int size1, int size2, int size3, const T& val) {
-    return VVV<T>(size1, std::vector<std::vector<T>>(
-                             size2, std::vector<T>(size3, val)));
-}
-
-VVV<int> DistancesFrom(const std::vector<std::string>& input,
+NestedVector<3, int> DistancesFrom(const std::vector<std::string>& input,
                        Coord start, int start_dir) {
     int size_i = input.size();
     int size_j = input[0].size();
@@ -50,8 +40,8 @@ VVV<int> DistancesFrom(const std::vector<std::string>& input,
         return c.i >= 0 && c.i < size_i && c.j >= 0 && c.j < size_j;
     };
 
-    VVV<int> d = MakeVVV(size_i, size_j, 4, kInf);
-    VVV<bool> added = MakeVVV(size_i, size_j, 4, false);
+    NestedVector<3, int> d = ConstVector(kInf, size_i, size_j, 4);
+    NestedVector<3, bool> added = ConstVector(false, size_i, size_j, 4);
     d[start.i][start.j][start_dir] = 0;
 
     while (true) {
@@ -109,8 +99,8 @@ int main() {
     std::tie(start.i, start.j) = FindOrDie<2>(input, 'S');
     std::tie(end.i, end.j) = FindOrDie<2>(input, 'E');
 
-    VVV<int> from_start = DistancesFrom(input, start, kEast);
-    VVV<int> from_end = DistancesFrom(input, end, kSouth);
+    NestedVector<3, int> from_start = DistancesFrom(input, start, kEast);
+    NestedVector<3, int> from_end = DistancesFrom(input, end, kSouth);
 
     // Find all states lying on a shortest path. State s lies on a shortest
     // path from b to e if and only if dist(b, e) = dist(b, s) + dist(s, e).

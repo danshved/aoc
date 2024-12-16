@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <iterator>
+#include <optional>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -106,5 +107,31 @@ auto FindIfOrDie(const Cont& cont, Pred&& pred) {
     assert(res.has_value());
     return *std::move(res);
 }
+
+template <size_t n, typename T>
+struct NestedVectorHelper {
+    using Type = std::vector<typename NestedVectorHelper<n - 1, T>::Type>;
+};
+
+template <typename T>
+struct NestedVectorHelper<0, T> {
+    using Type = T;
+};
+
+// Synonym for std::vector<std::vector<... (n times) ...<std::vector<T>>...>>.
+template <size_t n, typename T>
+using NestedVector = NestedVectorHelper<n, T>::Type;
+
+// Creates a multidimensional vector of given shape filled with the given value.
+template<typename T>
+NestedVector<0, T> ConstVector(const T& val) {
+    return val;
+}
+
+template<typename T, typename... Ts>
+NestedVector<1 + sizeof...(Ts), T> ConstVector(const T& val, size_t size, Ts... sizes) {
+    return std::vector(size, ConstVector(val, sizes...));
+}
+
 
 #endif

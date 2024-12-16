@@ -1,37 +1,41 @@
 #include <cassert>
+#include <cmath>
 #include <iostream>
 #include <tuple>
-#include <cmath>
 
+#include "collections.h"
 #include "numbers.h"
 #include "order.h"
 
-template<typename F> constexpr long double kEpsilon;
-template<> constexpr long double kEpsilon<float> = 1e-4;
-template<> constexpr long double kEpsilon<double> = 1e-13;
-template<> constexpr long double kEpsilon<long double> = 0;
+template <typename F>
+constexpr long double kEpsilon;
+template <>
+constexpr long double kEpsilon<float> = 1e-4;
+template <>
+constexpr long double kEpsilon<double> = 1e-13;
+template <>
+constexpr long double kEpsilon<long double> = 0;
 
-template<typename T>
+template <typename T>
 bool Near(Rational<T> r, long double v) {
     long double rd = static_cast<long double>(r.Num()) /
-            static_cast<long double>(r.Denom());
+                     static_cast<long double>(r.Denom());
     return abs(rd - v) <= 1e-16;
 }
 
-template<typename F>
-bool Near(F f, long double v) requires std::floating_point<F> {
+template <typename F>
+bool Near(F f, long double v)
+    requires std::floating_point<F>
+{
     return abs((long double)f - v) <= kEpsilon<F>;
 }
 
 template <typename R, typename I, typename F>
 void TestRational(
-        const std::string& rational_type,
-        const std::string& integral_type,
-        const std::string& floating_type)
-{
-    std::cerr << "Testing " << rational_type <<
-            " with " << integral_type <<
-            " and " << floating_type << "..." << std::endl;
+    const std::string& rational_type,
+    const std::string& integral_type,
+    const std::string& floating_type) {
+    std::cerr << "Testing " << rational_type << " with " << integral_type << " and " << floating_type << "..." << std::endl;
 
     assert(R(42).Num() == 42);
     assert(R(42).Denom() == 1);
@@ -77,7 +81,6 @@ void TestRational(
                     I ib = n2 / d2;
                     F fb = (F)n2 / d2;
 
-
                     assert((ra == rb) == (da == db));
                     assert((ra == ib) == (da == ib));
                     assert((ia == rb) == (ia == db));
@@ -91,7 +94,6 @@ void TestRational(
                     static_assert(std::is_same_v<decltype(ra <=> rb), std::strong_ordering>);
                     static_assert(std::is_same_v<decltype(ra <=> ib), std::strong_ordering>);
                     static_assert(std::is_same_v<decltype(ia <=> rb), std::strong_ordering>);
-                    
 
                     // Comparisons between rationals and floats are tested only
                     // on on power-of-2 denominators, when exact comparisons
@@ -151,18 +153,50 @@ void TestRational(
                     static_assert(std::is_same_v<decltype(ia / rb), R>);
                     static_assert(std::is_same_v<decltype(fa / rb), F>);
 
-                    { R t = ra; t += rb; assert(Near(t, da + db)); }
-                    { R t = ra; t += ib; assert(Near(t, da + ib)); }
+                    {
+                        R t = ra;
+                        t += rb;
+                        assert(Near(t, da + db));
+                    }
+                    {
+                        R t = ra;
+                        t += ib;
+                        assert(Near(t, da + ib));
+                    }
 
-                    { R t = ra; t -= rb; assert(Near(t, da - db)); }
-                    { R t = ra; t -= ib; assert(Near(t, da - ib)); }    
+                    {
+                        R t = ra;
+                        t -= rb;
+                        assert(Near(t, da - db));
+                    }
+                    {
+                        R t = ra;
+                        t -= ib;
+                        assert(Near(t, da - ib));
+                    }
 
-                    { R t = ra; t *= rb; assert(Near(t, da * db)); }
-                    { R t = ra; t *= ib; assert(Near(t, da * ib)); }   
+                    {
+                        R t = ra;
+                        t *= rb;
+                        assert(Near(t, da * db));
+                    }
+                    {
+                        R t = ra;
+                        t *= ib;
+                        assert(Near(t, da * ib));
+                    }
 
-                    if (n2 != 0) { R t = ra; t /= rb; assert(Near(t, da / db)); }
-                    if (ib != 0) { R t = ra; t /= ib; assert(Near(t, da / ib)); }     
-                 }
+                    if (n2 != 0) {
+                        R t = ra;
+                        t /= rb;
+                        assert(Near(t, da / db));
+                    }
+                    if (ib != 0) {
+                        R t = ra;
+                        t /= ib;
+                        assert(Near(t, da / ib));
+                    }
+                }
             }
         }
     }
@@ -172,28 +206,28 @@ void TestRational(
     for (I i = 0; i < 1000; i++) {
         acc += (R)i / 1000;
     }
-    assert (acc == (R)999 / 2);
+    assert(acc == (R)999 / 2);
 
     // Subtract some numbers to make sure there's no overflow.
     acc = 0;
     for (I i = 0; i < 1000; i++) {
         acc -= (R)i / 1000;
     }
-    assert (acc == (R)-999 / 2);
+    assert(acc == (R)-999 / 2);
 
     // Multiply some numbers to make sure there's no overflow.
     acc = 1;
     for (I i = 1; i < 1000; i++) {
         acc *= ((R)(i + 1) / i);
     }
-    assert (acc == 1000);
+    assert(acc == 1000);
 
     // Divide some numbers to make sure there's no overflow.
     acc = 1;
     for (I i = 1; i < 1000; i++) {
         acc /= ((R)(i + 1) / i);
     }
-    assert (acc == (R)1 / 1000);
+    assert(acc == (R)1 / 1000);
 }
 
 int main() {
@@ -202,15 +236,15 @@ int main() {
         for (int j = -100; j < 100; j++) {
             int d = Gcd(i, j), p, q;
             std::tie(p, q) = Euclid(i, j);
-            assert (p * i + q * j == d);
+            assert(p * i + q * j == d);
             if (i != 0 || j != 0) {
-                assert (d > 0);
-                assert (i % d == 0);
-                assert (j % d == 0);
+                assert(d > 0);
+                assert(i % d == 0);
+                assert(j % d == 0);
             }
         }
     }
-    assert (Gcd(0, 0) == 0);
+    assert(Gcd(0, 0) == 0);
 
     std::cerr << "Testing Inverse()..." << std::endl;
     {
@@ -219,7 +253,7 @@ int main() {
             if (i == 0) {
                 continue;
             }
-            assert (((i + p) * Inverse(i, p)) % p == 1);
+            assert(((i + p) * Inverse(i, p)) % p == 1);
         }
     }
     assert(Inverse(1, 0) == 1);
@@ -246,7 +280,17 @@ int main() {
     std::cerr << "Testing Rational conversions..." << std::endl;
     assert((LLRat)((Rat)2 / 3) == (LLRat)2 / 3);
     assert((Rat)((LLRat)2 / 3) == (Rat)2 / 3);
-    
+
+    std::cerr << "Testing NestedVector..." << std::endl;
+    static_assert(std::is_same_v<NestedVector<0, int>, int>);
+    static_assert(std::is_same_v<NestedVector<1, int>, std::vector<int>>);
+    static_assert(std::is_same_v<NestedVector<2, int>, std::vector<std::vector<int>>>);
+    static_assert(std::is_same_v<NestedVector<3, NestedVector<4, std::string>>,
+        NestedVector<7, std::string>>);
+
+    std::cerr << "Testing ConstVector..." << std::endl;
+    assert((ConstVector(42, 2, 3) == NestedVector<2, int>{{42, 42, 42}, {42, 42, 42}}));
+
     std::cerr << "OK" << std::endl;
     return 0;
 }
