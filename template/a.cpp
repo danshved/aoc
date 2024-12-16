@@ -4,6 +4,7 @@
 #include <limits>
 #include <map>
 #include <optional>
+#include <queue>
 #include <ranges>
 #include <set>
 #include <string>
