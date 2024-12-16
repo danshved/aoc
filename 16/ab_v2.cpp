@@ -32,7 +32,7 @@ struct Update {
     Coord pos;
     int dir;
 
-    std::strong_ordering operator<=>(const Update& other) const {
+    std::weak_ordering operator<=>(const Update& other) const {
         return other.dist <=> dist;
     }
 };
@@ -64,16 +64,16 @@ NestedVector<3, int> DistancesFrom(const std::vector<std::string>& input,
     push(Update{0, start, start_dir});
     while (!q.empty()) {
         Update u = pop();
-        if (d[u.pos.i][u.pos.j][u.dir] < u.dist) {
+        if (u.dist >= d[u.pos.i][u.pos.j][u.dir]) {
             continue;
         }
         d[u.pos.i][u.pos.j][u.dir] = u.dist;
 
         push(Update{u.dist + 1000, u.pos, (u.dir + 1) % 4});
         push(Update{u.dist + 1000, u.pos, (u.dir + 3) % 4});
-        Coord new_pos = u.pos + kDirs[u.dir];
-        if (in_bounds(new_pos) && input[new_pos.i][new_pos.j] != '#') {
-            push(Update{u.dist + 1, new_pos, u.dir});
+        Coord next = u.pos + kDirs[u.dir];
+        if (in_bounds(next) && input[next.i][next.j] != '#') {
+            push(Update{u.dist + 1, next, u.dir});
         }
     }
 
