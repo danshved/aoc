@@ -64,7 +64,7 @@ NestedVector<3, int> DistancesFrom(const std::vector<std::string>& input,
     push(Update{0, start, start_dir});
     while (!q.empty()) {
         Update u = pop();
-        if (u.dist >= d[u.pos.i][u.pos.j][u.dir]) {
+        if (d[u.pos.i][u.pos.j][u.dir] != kInf) {
             continue;
         }
         d[u.pos.i][u.pos.j][u.dir] = u.dist;
