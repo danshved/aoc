@@ -22,7 +22,7 @@ struct Coord {
     int i;
     int j;
 
-    Coord operator+(const Coord& other) {
+    Coord operator+(const Coord& other) const {
         return {i + other.i, j + other.j};
     }
 };
