@@ -290,6 +290,7 @@ int main() {
 
     std::cerr << "Testing ConstVector..." << std::endl;
     assert((ConstVector(42, 2, 3) == NestedVector<2, int>{{42, 42, 42}, {42, 42, 42}}));
+    assert(Sizes<3>(ConstVector('x', 3, 4, 5)) == std::make_tuple(3, 4, 5));
 
     std::cerr << "OK" << std::endl;
     return 0;

@@ -33,9 +33,7 @@ const int kInf = std::numeric_limits<int>::max();
 
 NestedVector<3, int> DistancesFrom(const std::vector<std::string>& input,
                        Coord start, int start_dir) {
-    int size_i = input.size();
-    int size_j = input[0].size();
-
+    auto [size_i, size_j] = Sizes<2>(input);
     auto in_bounds = [&](const Coord& c) {
         return c.i >= 0 && c.i < size_i && c.j >= 0 && c.j < size_j;
     };
@@ -92,8 +90,7 @@ NestedVector<3, int> DistancesFrom(const std::vector<std::string>& input,
 
 int main() {
     std::vector<std::string> input = Split(Trim(GetContents("input.txt")), '\n');
-    int size_i = input.size();
-    int size_j = input[0].size();
+    auto [size_i, size_j] = Sizes<2>(input);
 
     Coord start, end;
     std::tie(start.i, start.j) = FindOrDie<2>(input, 'S');

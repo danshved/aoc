@@ -133,5 +133,19 @@ NestedVector<1 + sizeof...(Ts), T> ConstVector(const T& val, size_t size, Ts... 
     return std::vector(size, ConstVector(val, sizes...));
 }
 
+// Helper: returns c.size(), c.front().size(), ... (k steps). Useful to get
+// e.g. the size of a matrix.
+//
+// Result type is an n-tuple of int.
+template<size_t n, class Cont>
+auto Sizes(const Cont& cont) {
+    if constexpr (n == 0) {
+        return std::tuple<>();
+    } else {
+        return std::tuple_cat(std::make_tuple((int)cont.size()),
+            Sizes<n - 1>(cont.front()));
+    }
+}
+
 
 #endif
