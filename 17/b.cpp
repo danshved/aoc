@@ -30,20 +30,20 @@ void solve(ULL a, ULL a_fixed, int shift, int pc) {
         return;
     }
     for (ULL low = 0; low < 8; low++) {
-        ULL a2 = (a & ~(0x7ull << shift)) | (low << shift);
+        ULL a2 = (a & ~(07ull << shift)) | (low << shift);
         if ((a2 ^ a) & a_fixed) {
             continue;
         }
-        ULL a2_fixed = a_fixed | (0x7ull << shift);
+        ULL a2_fixed = a_fixed | (07ull << shift);
 
-        ULL high = program[pc] ^ low ^ 0x1ull;
-        int high_shift = shift + (low ^ 0x2ull);
+        ULL high = program[pc] ^ low ^ 01ull;
+        int high_shift = shift + (low ^ 02ull);
 
-        ULL a3 = (a2 & ~(0x7ull << high_shift)) | (high << high_shift);
+        ULL a3 = (a2 & ~(07ull << high_shift)) | (high << high_shift);
         if ((a3 ^ a2) & a2_fixed) {
             continue;
         }
-        ULL a3_fixed = a2_fixed | (0x7ull << high_shift);
+        ULL a3_fixed = a2_fixed | (07ull << high_shift);
 
         solve(a3, a3_fixed, shift + 3, pc + 1);
     }
