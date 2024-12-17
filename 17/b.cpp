@@ -26,7 +26,9 @@ ULL answer = std::numeric_limits<ULL>::max();
 
 void solve(ULL a, ULL a_fixed, int shift, int pc) {
     if (pc == program.size()) {
-        answer = std::min(answer, a);
+        if (!(a >> shift)) {
+            answer = std::min(answer, a);
+        }
         return;
     }
     for (ULL low = 0; low < 8; low++) {
