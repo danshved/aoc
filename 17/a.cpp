@@ -57,11 +57,11 @@ int main() {
         switch(program[pc]) {
             case 0: s.a >>= combo(); pc += 2; break;
             case 1: s.b ^= program[pc + 1]; pc += 2; break;
-            case 2: s.b = combo() & 0x7; pc += 2; break;
+            case 2: s.b = combo() & 07; pc += 2; break;
             case 3: if (s.a != 0) {pc = program[pc + 1];}
                     else {pc += 2;} break;
             case 4: s.b ^= s.c; pc += 2; break;
-            case 5: output.push_back(combo() & 0x7); pc += 2; break;
+            case 5: output.push_back(combo() & 07); pc += 2; break;
             case 6: s.b = s.a >> combo(); pc += 2; break;
             case 7: s.c = s.a >> combo(); pc += 2; break;
         }
