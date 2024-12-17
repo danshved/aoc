@@ -36,9 +36,8 @@ void solve(ULL a, ULL a_fixed, int shift, int pc) {
         }
         ULL a2_fixed = a_fixed | (0x7ull << shift);
 
-        ULL f = (a2 >> shift) & 0x7ull;
-        ULL high = program[pc] ^ f ^ 0x1ull;
-        int high_shift = shift + (f ^ 0x2ull);
+        ULL high = program[pc] ^ low ^ 0x1ull;
+        int high_shift = shift + (low ^ 0x2ull);
 
         ULL a3 = (a2 & ~(0x7ull << high_shift)) | (high << high_shift);
         if ((a3 ^ a2) & a2_fixed) {
