@@ -43,7 +43,8 @@ int main() {
     }
 
     NestedVector<2, bool> occupied = ConstVector(false, kSizeY, kSizeX);
-    for (int i = 0; i < bytes.size(); i++) {
+    int i;
+    for (i = 0; i < bytes.size(); i++) {
         occupied[bytes[i].y][bytes[i].x] = true;
 
         NestedVector<2, int> d = ConstVector(kInf, kSizeY, kSizeX);
@@ -66,10 +67,10 @@ int main() {
         }
 
         if (d[kSizeY - 1][kSizeX - 1] == kInf) {
-            std::cout << bytes[i].x << "," << bytes[i].y << std::endl;
             break;
         }
     }
 
+    std::cout << bytes[i].x << "," << bytes[i].y << std::endl;
     return 0;
 }
