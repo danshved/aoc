@@ -54,13 +54,13 @@ int main() {
             Coord u = q.front();
             q.pop();
             for (int dir = 0; dir < 4; dir++) {
-                Coord next = {u.x + kDirs[dir].x, u.y + kDirs[dir].y};
-                if (!InBounds(next) || occupied[next.y][next.x]) {
+                Coord v = {u.x + kDirs[dir].x, u.y + kDirs[dir].y};
+                if (!InBounds(v) || occupied[v.y][v.x]) {
                     continue;
                 }
-                if (d[next.y][next.x] == kInf) {
-                    d[next.y][next.x] = d[u.y][u.x] + 1;
-                    q.push(next);
+                if (d[v.y][v.x] == kInf) {
+                    d[v.y][v.x] = d[u.y][u.x] + 1;
+                    q.push(v);
                 }
             }
         }
