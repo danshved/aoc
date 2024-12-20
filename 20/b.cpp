@@ -76,8 +76,8 @@ int main() {
                     if (md > 20) {
                         continue;
                     }
-                    assert (d[i][j] != kInf);
-                    assert (d[i1][j1] != kInf);
+                    assert(d[i][j] != kInf);
+                    assert(d[i1][j1] != kInf);
 
                     int cheat = d[i1][j1] - d[i][j] - md;
                     if (cheat >= 100) {
