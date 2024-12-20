@@ -38,9 +38,8 @@ int main() {
         return c.i >= 0 && c.i < size_i && c.j >= 0 && c.j < size_j;
     };
 
-    Coord start, end;
+    Coord start;
     std::tie(start.i, start.j) = FindOrDie<2>(input, 'S');
-    std::tie(end.i, end.j) = FindOrDie<2>(input, 'E');
 
     NestedVector<2, int> d = ConstVector(kInf, size_i, size_j);
     std::queue<Coord> q;
