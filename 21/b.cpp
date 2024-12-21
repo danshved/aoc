@@ -86,10 +86,8 @@ long long MoveCost(Coord start, Coord end, const Keypad& kp, int robots) {
 
     // The pointer is a robotic arm. Try to move it in two ways:
     // horizontal-then-vertical and vertical-then-horizontal.
-    std::string i_moves = (end.i > start.i) ? std::string(end.i - start.i, 'v')
-                                            : std::string(start.i - end.i, '^');
-    std::string j_moves = (end.j > start.j) ? std::string(end.j - start.j, '>')
-                                            : std::string(start.j - end.j, '<');
+    std::string i_moves = (end.i > start.i) ? std::string(end.i - start.i, 'v') : std::string(start.i - end.i, '^');
+    std::string j_moves = (end.j > start.j) ? std::string(end.j - start.j, '>') : std::string(start.j - end.j, '<');
     Coord forbidden = kp.at('x');
 
     result = std::numeric_limits<long long>::max();
