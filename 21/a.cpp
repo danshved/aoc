@@ -60,12 +60,10 @@ std::vector<std::string> GetVariants(const std::string& s, int i, const Keypad& 
     Coord next = kp.at(s[i]);
     std::vector<std::string> from_next = GetVariants(s, i + 1, kp, next);
 
-    std::string i_moves = (next.i > pos.i)   ? std::string(next.i - pos.i, 'v')
-                          : (next.i < pos.i) ? std::string(pos.i - next.i, '^')
-                                              : std::string();
-    std::string j_moves = (next.j > pos.j)   ? std::string(next.j - pos.j, '>')
-                          : (next.j < pos.j) ? std::string(pos.j - next.j, '<')
-                                              : std::string();
+    std::string i_moves = (next.i > pos.i) ? std::string(next.i - pos.i, 'v')
+                                           : std::string(pos.i - next.i, '^');
+    std::string j_moves = (next.j > pos.j) ? std::string(next.j - pos.j, '>')
+                                           : std::string(pos.j - next.j, '<');
     Coord forbidden = kp.at('x');
     std::vector<std::string> result;
 
@@ -98,7 +96,7 @@ int main() {
     int answer = 0;
     for (const std::string& s : lines) {
         std::vector<std::string> vars = Get(Get(Get({s}, kNumbers), kArrows), kArrows);
-        
+
         int best = std::numeric_limits<int>::max();
         for (const std::string& var : vars) {
             best = std::min(best, (int)var.size());

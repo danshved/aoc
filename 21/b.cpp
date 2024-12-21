@@ -52,26 +52,27 @@ const Keypad kArrows = {
     {'>', {1, 2}},
 };
 
-long long CountMoves(Coord start, Coord end, const Keypad& kp, int below);
+long long MoveCost(Coord start, Coord end, const Keypad& kp, int below);
 
 // How many human keypresses it costs to push a given sequence of keys on a
-// given keypad, assuming that the pointer on this keypad and the pointers on
-// all keypads upstream start on 'A' and finish on 'A'.
+// given keypad, assuming that the pointer on this keypad and all the pointers
+// on keypads upstream start on 'A' and finish on 'A'.
 long long StrCost(const std::string& s, const Keypad& kp, int robots) {
     Coord pos = kp.at('A');
     long long result = 0;
     for (char c : s) {
         Coord next = kp.at(c);
-        result += CountMoves(pos, next, kp, robots) + 1;
+        result += MoveCost(pos, next, kp, robots) + 1;
         pos = next;
     }
-    result += CountMoves(pos, kp.at('A'), kp, robots);
+    result += MoveCost(pos, kp.at('A'), kp, robots);
     return result;
 }
 
-// How many human keypresses it costs to move the pointer from 'start'
-// to 'end', assuming all pointers upstream start on 'A' and finish on 'A'.
-long long CountMoves(Coord start, Coord end, const Keypad& kp, int robots) {
+// How many human keypresses it costs to move the pointer on a given keypad
+// from `start` to `end`, assuming all pointers upstream start on 'A' and finish
+// on 'A'.
+long long MoveCost(Coord start, Coord end, const Keypad& kp, int robots) {
     static NestedVector<5, long long> d = ConstVector(-1ll, 4, 3, 4, 3, 27);
     long long& result = d[start.i][start.j][end.i][end.j][robots];
     if (result != -1) {
@@ -85,12 +86,10 @@ long long CountMoves(Coord start, Coord end, const Keypad& kp, int robots) {
 
     // The pointer is a robotic arm. Try to move it in two ways:
     // horizontal-then-vertical and vertical-then-horizontal.
-    std::string i_moves = (end.i > start.i)   ? std::string(end.i - start.i, 'v')
-                          : (end.i < start.i) ? std::string(start.i - end.i, '^')
-                                              : std::string();
-    std::string j_moves = (end.j > start.j)   ? std::string(end.j - start.j, '>')
-                          : (end.j < start.j) ? std::string(start.j - end.j, '<')
-                                              : std::string();
+    std::string i_moves = (end.i > start.i) ? std::string(end.i - start.i, 'v')
+                                            : std::string(start.i - end.i, '^');
+    std::string j_moves = (end.j > start.j) ? std::string(end.j - start.j, '>')
+                                            : std::string(start.j - end.j, '<');
     Coord forbidden = kp.at('x');
 
     result = std::numeric_limits<long long>::max();
