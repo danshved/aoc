@@ -52,7 +52,7 @@ const Keypad kArrows = {
     {'>', {1, 2}},
 };
 
-long long MoveCost(Coord start, Coord end, const Keypad& kp, int below);
+long long MoveCost(Coord, Coord, const Keypad&, int);
 
 // How many human keypresses it costs to push a given sequence of keys on a
 // given keypad, assuming that the pointer on this keypad and all the pointers
