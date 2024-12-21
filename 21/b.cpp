@@ -80,7 +80,7 @@ long long MoveCost(Coord start, Coord end, const Keypad& kp, int robots) {
     }
 
     if (robots == 0) {
-        // The pointer is the human finger, it costs nothing to move it.
+        // The pointer is a human finger, it costs nothing to move it.
         return result = 0;
     }
 
