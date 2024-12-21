@@ -33,10 +33,10 @@ const Keypad kNumbers = {
     {'7', {0, 0}}, {'8', {0, 1}}, {'9', {0, 2}},
     {'4', {1, 0}}, {'5', {1, 1}}, {'6', {1, 2}},
     {'1', {2, 0}}, {'2', {2, 1}}, {'3', {2, 2}},
-    {'x', {3, 0}}, {'0', {3, 1}}, {'A', {3, 2}},
+    {' ', {3, 0}}, {'0', {3, 1}}, {'A', {3, 2}},
 };
 const Keypad kArrows = {
-    {'x', {0, 0}}, {'^', {0, 1}}, {'A', {0, 2}},
+    {' ', {0, 0}}, {'^', {0, 1}}, {'A', {0, 2}},
     {'<', {1, 0}}, {'v', {1, 1}}, {'>', {1, 2}},
 };
 // clang-format on
@@ -48,20 +48,17 @@ std::vector<std::string> GetVariants(const std::string& s, int i, const Keypad& 
 
     Coord next = kp.at(s[i]);
     std::vector<std::string> from_next = GetVariants(s, i + 1, kp, next);
-
     std::string i_moves = (next.i > pos.i) ? std::string(next.i - pos.i, 'v') : std::string(pos.i - next.i, '^');
     std::string j_moves = (next.j > pos.j) ? std::string(next.j - pos.j, '>') : std::string(pos.j - next.j, '<');
-    Coord forbidden = kp.at('x');
-    std::vector<std::string> result;
 
-    if (Coord{pos.i, next.j} != forbidden) {
+    std::vector<std::string> result;
+    if (Coord{pos.i, next.j} != kp.at(' ')) {
         std::string prefix = j_moves + i_moves + "A";
         for (const std::string& rest : from_next) {
             result.push_back(prefix + rest);
         }
     }
-
-    if (next.i != pos.i && next.j != pos.j && Coord{next.i, pos.j} != forbidden) {
+    if (next.i != pos.i && next.j != pos.j && Coord{next.i, pos.j} != kp.at(' ')) {
         std::string prefix = i_moves + j_moves + "A";
         for (const std::string& rest : from_next) {
             result.push_back(prefix + rest);

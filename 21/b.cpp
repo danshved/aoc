@@ -33,10 +33,10 @@ const Keypad kNumbers = {
     {'7', {0, 0}}, {'8', {0, 1}}, {'9', {0, 2}},
     {'4', {1, 0}}, {'5', {1, 1}}, {'6', {1, 2}},
     {'1', {2, 0}}, {'2', {2, 1}}, {'3', {2, 2}},
-    {'x', {3, 0}}, {'0', {3, 1}}, {'A', {3, 2}},
+    {' ', {3, 0}}, {'0', {3, 1}}, {'A', {3, 2}},
 };
 const Keypad kArrows = {
-    {'x', {0, 0}}, {'^', {0, 1}}, {'A', {0, 2}},
+    {' ', {0, 0}}, {'^', {0, 1}}, {'A', {0, 2}},
     {'<', {1, 0}}, {'v', {1, 1}}, {'>', {1, 2}},
 };
 // clang-format on
@@ -77,13 +77,12 @@ long long MoveCost(Coord start, Coord end, const Keypad& kp, int robots) {
     // horizontal-then-vertical and vertical-then-horizontal.
     std::string i_moves = (end.i > start.i) ? std::string(end.i - start.i, 'v') : std::string(start.i - end.i, '^');
     std::string j_moves = (end.j > start.j) ? std::string(end.j - start.j, '>') : std::string(start.j - end.j, '<');
-    Coord forbidden = kp.at('x');
 
     result = std::numeric_limits<long long>::max();
-    if (Coord{start.i, end.j} != forbidden) {
+    if (Coord{start.i, end.j} != kp.at(' ')) {
         result = std::min(result, StrCost(j_moves + i_moves, kArrows, robots - 1));
     }
-    if (Coord{end.i, start.j} != forbidden) {
+    if (Coord{end.i, start.j} != kp.at(' ')) {
         result = std::min(result, StrCost(i_moves + j_moves, kArrows, robots - 1));
     }
     return result;
