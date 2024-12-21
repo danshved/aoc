@@ -29,7 +29,7 @@ struct Coord {
 using Keypad = std::unordered_map<char, Coord>;
 
 // clang-format off
-const Keypad kNumbers = {
+const Keypad kDigits = {
     {'7', {0, 0}}, {'8', {0, 1}}, {'9', {0, 2}},
     {'4', {1, 0}}, {'5', {1, 1}}, {'6', {1, 2}},
     {'1', {2, 0}}, {'2', {2, 1}}, {'3', {2, 2}},
@@ -92,7 +92,7 @@ int main() {
     std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), '\n');
     long long answer = 0;
     for (const std::string& s : lines) {
-        answer += std::stoll(s) * StrCost(s, kNumbers, 26);
+        answer += std::stoll(s) * StrCost(s, kDigits, 26);
     }
     std::cout << answer << std::endl;
     return 0;

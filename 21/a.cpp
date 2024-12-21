@@ -29,7 +29,7 @@ struct Coord {
 using Keypad = std::unordered_map<char, Coord>;
 
 // clang-format off
-const Keypad kNumbers = {
+const Keypad kDigits = {
     {'7', {0, 0}}, {'8', {0, 1}}, {'9', {0, 2}},
     {'4', {1, 0}}, {'5', {1, 1}}, {'6', {1, 2}},
     {'1', {2, 0}}, {'2', {2, 1}}, {'3', {2, 2}},
@@ -79,7 +79,7 @@ int main() {
 
     int answer = 0;
     for (const std::string& s : lines) {
-        std::vector<std::string> vars = Get(Get(Get({s}, kNumbers), kArrows), kArrows);
+        std::vector<std::string> vars = Get(Get(Get({s}, kDigits), kArrows), kArrows);
 
         int best = std::numeric_limits<int>::max();
         for (const std::string& var : vars) {
