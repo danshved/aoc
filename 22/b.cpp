@@ -67,11 +67,6 @@ int main() {
         }
     }
 
-    int answer = 0;
-    for (const auto& [_, count] : counts) {
-        answer = std::max(answer, count);
-    }
-    
-    std::cout << answer << std::endl;
+    std::cout << std::ranges::max(counts | std::views::values) << std::endl;
     return 0;
 }
