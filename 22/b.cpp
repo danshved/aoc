@@ -39,12 +39,11 @@ long long Step(long long x) {
 
 int main() {
     std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), '\n');
-
     std::unordered_map<Tuple4, int, Hasher> counts;
+    
     for (const auto& line : lines) {
         long long x = std::stoll(line);
-        int changes[4] = {0, 0, 0, 0};
-        int pos = 0;
+        Tuple4 t;
         std::unordered_set<Tuple4, Hasher> seen;
 
         for (int i = 0; i < 2000; i++) {
@@ -52,14 +51,11 @@ int main() {
             int change = (next % 10) - (x % 10);
             x = next;
 
-            changes[pos] = change;
-            pos = (pos + 1) % 4;
+            t = std::make_tuple(std::get<1>(t), std::get<2>(t), std::get<3>(t), change);
             if (i < 3) {
                 continue;
             }
 
-            Tuple4 t = std::make_tuple(changes[pos], changes[(pos + 1) % 4],
-                                       changes[(pos + 2) % 4], changes[(pos + 3) % 4]);
             if (!seen.contains(t)) {
                 seen.insert(t);
                 counts[t] += x % 10;
