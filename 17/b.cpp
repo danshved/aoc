@@ -21,7 +21,7 @@
 
 using ULL = unsigned long long;
 
-std::vector<ULL> program = {2,4,1,2,7,5,1,3,4,4,5,5,0,3,3,0};
+std::vector<ULL> program = {2, 4, 1, 2, 7, 5, 1, 3, 4, 4, 5, 5, 0, 3, 3, 0};
 ULL answer = std::numeric_limits<ULL>::max();
 
 /*
@@ -36,12 +36,10 @@ do {
 
 void solve(ULL a, ULL a_fixed, int pc) {
     if (pc == program.size()) {
-        if (!(a >> (3 * pc))) {
-            answer = std::min(answer, a);
-        }
+        answer = std::min(answer, a);
         return;
     }
-    for (ULL low = 0; low < 8; low++) {
+    for (ULL low = 0; low < 010; low++) {
         // Set 3 bits of A to `low` if it doesn't contradict the bits set earlier.
         int low_shift = 3 * pc;
         ULL a2 = (a & ~(07ull << low_shift)) | (low << low_shift);
@@ -66,7 +64,7 @@ void solve(ULL a, ULL a_fixed, int pc) {
 }
 
 int main() {
-    solve(0, 0, 0);
+    solve(0, ~((1ull << 3 * program.size()) - 1), 0);
     std::cout << answer << std::endl;
     return 0;
 }
