@@ -154,49 +154,19 @@ void TestRational(
                     static_assert(std::is_same_v<decltype(ia / rb), R>);
                     static_assert(std::is_same_v<decltype(fa / rb), F>);
 
-                    {
-                        R t = ra;
-                        t += rb;
-                        assert(Near(t, da + db));
-                    }
-                    {
-                        R t = ra;
-                        t += ib;
-                        assert(Near(t, da + ib));
-                    }
+                    // clang-format off
+                    {R t = ra; t += rb; assert(Near(t, da + db));}
+                    {R t = ra; t += ib; assert(Near(t, da + ib));}
 
-                    {
-                        R t = ra;
-                        t -= rb;
-                        assert(Near(t, da - db));
-                    }
-                    {
-                        R t = ra;
-                        t -= ib;
-                        assert(Near(t, da - ib));
-                    }
+                    {R t = ra; t -= rb; assert(Near(t, da - db));}
+                    {R t = ra; t -= ib; assert(Near(t, da - ib));}
 
-                    {
-                        R t = ra;
-                        t *= rb;
-                        assert(Near(t, da * db));
-                    }
-                    {
-                        R t = ra;
-                        t *= ib;
-                        assert(Near(t, da * ib));
-                    }
+                    {R t = ra; t *= rb; assert(Near(t, da * db));}
+                    {R t = ra; t *= ib; assert(Near(t, da * ib));}
 
-                    if (n2 != 0) {
-                        R t = ra;
-                        t /= rb;
-                        assert(Near(t, da / db));
-                    }
-                    if (ib != 0) {
-                        R t = ra;
-                        t /= ib;
-                        assert(Near(t, da / ib));
-                    }
+                    if (n2 != 0) {R t = ra; t /= rb; assert(Near(t, da / db));}
+                    if (ib != 0) {R t = ra; t /= ib; assert(Near(t, da / ib));}
+                    // clang-format on
                 }
             }
         }
@@ -298,7 +268,7 @@ int main() {
     static_assert(std::is_same_v<NestedVector<1, int>, std::vector<int>>);
     static_assert(std::is_same_v<NestedVector<2, int>, std::vector<std::vector<int>>>);
     static_assert(std::is_same_v<NestedVector<3, NestedVector<4, std::string>>,
-        NestedVector<7, std::string>>);
+                                 NestedVector<7, std::string>>);
 
     std::cerr << "Testing ConstVector..." << std::endl;
     assert((ConstVector(42, 2, 3) == NestedVector<2, int>{{42, 42, 42}, {42, 42, 42}}));
