@@ -49,7 +49,7 @@ int main() {
 
         for (int i = 0; i < 2000; i++) {
             long long next = Step(x);
-            int change = (next % 10) - (x % 10) + 18;
+            int change = (next % 10) - (x % 10);
             x = next;
 
             changes[pos] = change;
