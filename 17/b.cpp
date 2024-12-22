@@ -24,6 +24,16 @@ using ULL = unsigned long long;
 std::vector<ULL> program = {2,4,1,2,7,5,1,3,4,4,5,5,0,3,3,0};
 ULL answer = std::numeric_limits<ULL>::max();
 
+/*
+The program does this:
+do {
+    int low = a & 7;
+    int high = (a >> (low & 2)) & 7;
+    output.push_back(low ^ high ^ 1);
+    a >>= 3;
+} while (a != 0);
+*/
+
 void solve(ULL a, ULL a_fixed, int pc) {
     if (pc == program.size()) {
         if (!(a >> (3 * pc))) {
