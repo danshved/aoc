@@ -281,6 +281,17 @@ int main() {
     assert((LLRat)((Rat)2 / 3) == (LLRat)2 / 3);
     assert((Rat)((LLRat)2 / 3) == (Rat)2 / 3);
 
+    std::cerr << "Testing NTuple..." << std::endl;
+    static_assert(std::is_same_v<NTuple<0, int>, std::tuple<>>);
+    static_assert(std::is_same_v<NTuple<1, int>, std::tuple<int>>);
+    static_assert(std::is_same_v<NTuple<2, int>, std::tuple<int, int>>);
+    static_assert(std::is_same_v<NTuple<3, char>, std::tuple<char, char, char>>);
+
+    std::cerr << "Testing Find..." << std::endl;
+    assert(Find<2>(std::vector<std::string>{"abcdef", "gijklmnop"}, 'l') == std::make_tuple(1, 4));
+    assert(Find<2>(std::vector<std::string>{"abcdef", "gijklmnop"}, 'z') == std::nullopt);
+    assert(FindOrDie<2>(std::vector<std::string>{"abcdef", "gijklmnop"}, 'd') == std::make_tuple(0, 3));
+
     std::cerr << "Testing NestedVector..." << std::endl;
     static_assert(std::is_same_v<NestedVector<0, int>, int>);
     static_assert(std::is_same_v<NestedVector<1, int>, std::vector<int>>);
