@@ -34,7 +34,7 @@ int main() {
     NestedVector<4, int> counts = ConstVector(0, 37, 37, 37, 37);
     for (const auto& line : lines) {
         long long x = std::stoll(line);
-        NestedVector<4, int> local_counts = ConstVector(-1, 37, 37, 37, 37);
+        NestedVector<4, bool> seen = ConstVector(false, 37, 37, 37, 37);
         int changes[4] = {0, 0, 0, 0};
         int pos = 0;
 
@@ -49,22 +49,11 @@ int main() {
                 continue;
             }
 
-            int& count = local_counts[changes[pos]][changes[(pos + 1) % 4]]
-                                     [changes[(pos + 2) % 4]][changes[(pos + 3) % 4]];
-            if (count == -1) {
-                count = x % 10;
-            }
-        }
-
-        for (int a = 0; a < 37; a++) {
-            for (int b = 0; b < 37; b++) {
-                for (int c = 0; c < 37; c++) {
-                    for (int d = 0; d < 37; d++) {
-                        if (local_counts[a][b][c][d] != -1) {
-                            counts[a][b][c][d] += local_counts[a][b][c][d];
-                        }
-                    }
-                }
+            int a = changes[pos], b = changes[(pos + 1) % 4],
+                c = changes[(pos + 2) % 4], d = changes[(pos + 3) % 4];
+            if (!seen[a][b][c][d]) {
+                seen[a][b][c][d] = true;
+                counts[a][b][c][d] += x % 10;
             }
         }
     }
