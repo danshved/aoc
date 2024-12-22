@@ -6,6 +6,7 @@
 #include "collections.h"
 #include "numbers.h"
 #include "order.h"
+#include "parse.h"
 
 template <typename F>
 constexpr long double kEpsilon;
@@ -304,5 +305,8 @@ int main() {
     assert(Sizes<3>(ConstVector('x', 3, 4, 5)) == std::make_tuple(3, 4, 5));
 
     std::cerr << "OK" << std::endl;
+    std::cout << SeqHash(1, 2, 3, 4) << std::endl;
+    std::cout << TupleHash(std::make_tuple()) << std::endl;
+    std::cout << std::hash<int>()(42) << std::endl;
     return 0;
 }

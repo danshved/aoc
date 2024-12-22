@@ -19,13 +19,6 @@
 #include "order.h"
 #include "parse.h"
 
-struct Hasher {
-    size_t operator()(const NTuple<4, int>& x) const {
-        const auto& [a, b, c, d] = x;
-        return a + b * 40 + c * 1600 + d * 64000;
-    }
-};
-
 const long long kMod = 16777216;
 
 long long Step(long long x) {
@@ -37,12 +30,12 @@ long long Step(long long x) {
 
 int main() {
     std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), '\n');
-    std::unordered_map<NTuple<4, int>, int, Hasher> counts;
+    std::unordered_map<NTuple<4, int>, int, TupleHasher> counts;
     
     for (const auto& line : lines) {
         long long x = std::stoll(line);
         NTuple<4, int> t;
-        std::unordered_set<NTuple<4, int>, Hasher> seen;
+        std::unordered_set<NTuple<4, int>, TupleHasher> seen;
 
         for (int i = 0; i < 2000; i++) {
             long long next = Step(x);

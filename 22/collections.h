@@ -164,4 +164,37 @@ NTuple<n, int> Sizes(const Cont& cont) {
     }
 }
 
+size_t CombineHash(size_t h, size_t val) {
+    return h ^ ((h * 999983) + 997391 + val);
+}
+
+size_t SeqHash() {
+    return 0;
+}
+
+template<typename T, typename... Ts>
+size_t SeqHash(const T& val, const Ts&... vals) {
+    return CombineHash(SeqHash(vals...), std::hash<T>()(val));
+}
+
+template<typename Tuple, std::size_t... Is>
+size_t TupleHashImpl(const Tuple& t, std::index_sequence<Is...>) {
+    return SeqHash(std::get<Is>(t)...);
+}
+
+template<typename... Ts>
+size_t TupleHash(const std::tuple<Ts...>& t) {
+    return TupleHashImpl(t, std::index_sequence_for<Ts...>());
+}
+
+// Hasher for tuples to be used with std::unordered_set and std::unordered_map.
+//
+// Example: std::unordered_set<NTuple<3, int>, TupleHasher> set;
+struct TupleHasher {
+    template<typename... Ts>
+    size_t operator()(const std::tuple<Ts...>& t) const {
+        return TupleHash(t);
+    }
+};
+
 #endif
