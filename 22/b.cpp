@@ -49,11 +49,10 @@ int main() {
                 continue;
             }
 
-            int bananas = x % 10;
             int& count = local_counts[changes[pos]][changes[(pos + 1) % 4]]
                                      [changes[(pos + 2) % 4]][changes[(pos + 3) % 4]];
             if (count == -1) {
-                count = bananas;
+                count = x % 10;
             }
         }
 
