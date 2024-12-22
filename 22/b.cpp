@@ -19,6 +19,15 @@
 #include "order.h"
 #include "parse.h"
 
+using Tuple4 = std::tuple<int, int, int, int>;
+
+struct Hasher {
+    size_t operator()(const Tuple4& x) const {
+        auto [a, b, c, d] = x;
+        return a + b * 40 + c * 1600 + d * 64000;
+    }
+};
+
 const long long kMod = 16777216;
 
 long long Step(long long x) {
@@ -31,12 +40,12 @@ long long Step(long long x) {
 int main() {
     std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), '\n');
 
-    NestedVector<4, int> counts = ConstVector(0, 37, 37, 37, 37);
+    std::unordered_map<Tuple4, int, Hasher> counts;
     for (const auto& line : lines) {
         long long x = std::stoll(line);
-        NestedVector<4, bool> seen = ConstVector(false, 37, 37, 37, 37);
         int changes[4] = {0, 0, 0, 0};
         int pos = 0;
+        std::unordered_set<Tuple4, Hasher> seen;
 
         for (int i = 0; i < 2000; i++) {
             long long next = Step(x);
@@ -49,26 +58,20 @@ int main() {
                 continue;
             }
 
-            int a = changes[pos], b = changes[(pos + 1) % 4],
-                c = changes[(pos + 2) % 4], d = changes[(pos + 3) % 4];
-            if (!seen[a][b][c][d]) {
-                seen[a][b][c][d] = true;
-                counts[a][b][c][d] += x % 10;
+            Tuple4 t = std::make_tuple(changes[pos], changes[(pos + 1) % 4],
+                                       changes[(pos + 2) % 4], changes[(pos + 3) % 4]);
+            if (!seen.contains(t)) {
+                seen.insert(t);
+                counts[t] += x % 10;
             }
         }
     }
 
     int answer = 0;
-    for (int a = 0; a < 37; a++) {
-        for (int b = 0; b < 37; b++) {
-            for (int c = 0; c < 37; c++) {
-                for (int d = 0; d < 37; d++) {
-                    answer = std::max(answer, counts[a][b][c][d]);
-                }
-            }
-        }
+    for (const auto& [_, count] : counts) {
+        answer = std::max(answer, count);
     }
-
+    
     std::cout << answer << std::endl;
     return 0;
 }
