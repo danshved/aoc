@@ -28,7 +28,7 @@ ULL answer = std::numeric_limits<ULL>::max();
 The program does this:
 do {
     int low = a & 7;
-    int high = (a >> (low & 2)) & 7;
+    int high = (a >> (low ^ 2)) & 7;
     output.push_back(low ^ high ^ 1);
     a >>= 3;
 } while (a != 0);
