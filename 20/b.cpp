@@ -42,14 +42,15 @@ int main() {
         if (input[u.i][u.j] == '#') {
             continue;
         }
-        for (Coord v : Bounds(size_i, size_j)) {
-            if (input[v.i][v.j] == '#') {
-                continue;
-            }
+        for (Coord v : ManhattanSpiral(u)) {
             int md = (u - v).Manhattan();
             if (md > 20) {
+                break;
+            }
+            if (!InBounds(v, size_i, size_j) || input[v.i][v.j] == '#') {
                 continue;
             }
+
             int cheat = d.at(v) - d.at(u) - md;
             if (cheat >= 100) {
                 answer++;
