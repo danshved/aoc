@@ -22,9 +22,9 @@
 #include "parse.h"
 
 // Possible states of the guard. Each state is a position and a unit vector
-// representing the guard's direction. There are 4 legal states  within each
+// representing the guard's direction. There are 4 legal states within each
 // cell that is not '#'. There is one additional legal state "outside the map".
-using State = PosJump;
+using State = PosDir;
 const State kOutside = {{0, 0}, {0, 0}};
 
 std::vector<std::string> input;
@@ -40,10 +40,10 @@ State Next(const State& s) {
         return kOutside;
     }
 
-    Coord next = s.pos + s.jump;
+    Coord next = s.pos + s.dir;
     return (!InBounds(next, size_i, size_j)) ? kOutside
-           : (input[next.i][next.j] == '#')  ? State{s.pos, s.jump.RotateRight()}
-                                             : State{next, s.jump};
+           : (input[next.i][next.j] == '#')  ? State{s.pos, s.dir.RotateRight()}
+                                             : State{next, s.dir};
 }
 
 // Helper: map whose keys are states.
@@ -186,14 +186,14 @@ int main() {
             }
 
             // If we already hit this side of the obstacle before, this is a cycle.
-            if (auto [_, inserted] = seen.insert(hit.jump); !inserted) {
+            if (auto [_, inserted] = seen.insert(hit.dir); !inserted) {
                 answer++;
                 break;
             }
 
             // Instead of walking through the obstacle, stop in front of it
             // and rotate 90 degrees.
-            guard = {hit.pos - hit.jump, hit.jump.RotateRight()};
+            guard = {hit.pos - hit.dir, hit.dir.RotateRight()};
         }
     }
 

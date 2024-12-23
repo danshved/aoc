@@ -33,7 +33,7 @@ int main() {
             continue;
         }
 
-        std::unordered_set<PosJump> visited;
+        std::unordered_set<PosDir> visited;
         Coord guard = start;
         Coord dir = kNorth;
         while (true) {

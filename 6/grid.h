@@ -42,10 +42,12 @@ struct Coord {
         return *this = *this * k;
     }
 
+    // Rotates 90 degrees "right", i.e. clockwise.
     Coord RotateRight() const {
         return {j, -i};
     }
 
+    // Rotates 90 degrees "left", i.e. counterclockwise.
     Coord RotateLeft() const {
         return {-j, i};
     }
@@ -128,24 +130,23 @@ class Bounds {
     int size_j_;
 };
 
-// Represents a jump on the grid from one position (`pos`) to another position
-// (`pos + jump`).
-struct PosJump {
+// Convenient struct to represent a pair (position, direction).
+struct PosDir {
     Coord pos;
-    Coord jump;
+    Coord dir;
 
-    PosJump() {};
+    PosDir() {};
 
-    PosJump(const Coord& the_pos, const Coord& the_jump)
-        : pos(the_pos), jump(the_jump) {}
+    PosDir(const Coord& the_pos, const Coord& the_dir)
+        : pos(the_pos), dir(the_dir) {}
 
-    bool operator<=>(const PosJump&) const = default;
+    bool operator<=>(const PosDir&) const = default;
 };
 
 template <>
-struct std::hash<PosJump> {
-    size_t operator()(const PosJump& s) const {
-        return SeqHash(s.pos, s.jump);
+struct std::hash<PosDir> {
+    size_t operator()(const PosDir& s) const {
+        return SeqHash(s.pos, s.dir);
     }
 };
 
