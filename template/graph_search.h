@@ -75,6 +75,12 @@ DFSResult<Node, Hasher> DFS(StartFunc&& start, VisitFunc&& visit) {
     };
 }
 
-// TODO: add DFSFrom().
+template <typename Node, typename Hasher = std::hash<Node>,
+          typename VisitFunc>
+DFSResult<Node, Hasher> DFSFrom(const Node& start, VisitFunc&& visit) {
+    return DFS<Node, Hasher>(
+        [&start](auto& search) { search.Look(start); },
+        std::forward<VisitFunc>(visit));
+}
 
 #endif

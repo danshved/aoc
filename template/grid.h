@@ -2,6 +2,7 @@
 #define __AOC_GRID_H__
 
 #include <unordered_map>
+#include <iterator>
 
 #include "collections.h"
 
@@ -13,6 +14,20 @@ struct Coord {
     Coord() : i(0), j(0) {}
 
     Coord(int the_i, int the_j) : i(the_i), j(the_j) {}
+
+    Coord(const std::tuple<int, int>& t)
+        : i(std::get<0>(t)), j(std::get<1>(t)) {};
+
+    Coord(const Coord&) = default;
+    Coord& operator=(const Coord&) = default;
+    Coord(Coord&&) = default;
+    Coord& operator=(Coord&&) = default;
+
+    Coord& operator=(const std::tuple<int, int>& t) {
+        i = std::get<0>(t);
+        j = std::get<1>(t);
+        return *this;
+    }
 
     Coord operator+(const Coord& other) const {
         return {i + other.i, j + other.j};
@@ -42,6 +57,8 @@ struct Coord {
         return *this = *this * k;
     }
 
+    bool operator<=>(const Coord&) const = default;
+
     // Rotates 90 degrees "right", i.e. clockwise.
     Coord RotateRight() const {
         return {j, -i};
@@ -52,7 +69,15 @@ struct Coord {
         return {-j, i};
     }
 
-    bool operator<=>(const Coord&) const = default;
+    // Manhattan a.k.a. Taxicab metric.
+    int Manhattan() const {
+        return abs(i) + abs(j);
+    }
+
+    // Chessboard a.k.a. Chebyshev metric.
+    int Chess() const {
+        return std::max(abs(i), abs(j));
+    }
 };
 
 template <>
@@ -95,6 +120,12 @@ class Bounds {
             return *this;
         }
 
+        Iterator operator++(int) {
+            Iterator current = *this;
+            ++(*this);
+            return current;
+        }
+
         bool operator==(const Iterator& other) const {
             if (size_j_ != other.size_j_) {
                 return false;
@@ -128,6 +159,131 @@ class Bounds {
    private:
     int size_i_;
     int size_j_;
+};
+
+// Infinite range going around a given cell in the order of non-decreasing
+// Manhattan metric.
+class ManhattanSpiral {
+   public:
+    class Iterator {
+       public:
+        using difference_type = std::ptrdiff_t;
+
+        Iterator(Coord start, Coord cur) : start_(start), cur_(cur) {}
+
+        Coord operator*() const {
+            return cur_;
+        }
+
+        Iterator& operator++() {
+            if (cur_.i < start_.i && cur_.j <= start_.j) {
+                cur_ += {1, -1};
+            } else if (cur_.i >= start_.i && cur_.j < start_.j) {
+                cur_ += {1, 1};
+            } else if (cur_.i > start_.i && cur_.j >= start_.j) {
+                cur_ += {-1, 1};
+            } else if (cur_.i <= start_.i && cur_.j > start_.j) {
+                cur_ += {-1, -1};
+            }
+
+            if (cur_.j == start_.j && cur_.i >= start_.i) {
+                cur_ += {1, 0};
+            }
+            return *this;
+        }
+
+        Iterator operator++(int) {
+            Iterator current = *this;
+            ++(*this);
+            return current;
+        }
+
+        bool operator==(const Iterator&) const = default;
+
+       private:
+        Coord start_;
+        Coord cur_;
+    };
+    using iterator = Iterator;
+
+    ManhattanSpiral(const Coord& start) : start_(start) {}
+
+    Iterator begin() const {
+        return Iterator(start_, start_);
+    }
+
+    std::unreachable_sentinel_t end() const {
+        return std::unreachable_sentinel;
+    }
+
+   private:
+    Coord start_;
+};
+
+// Infinite range going around a given cell in the order of non-decreasing
+// chessboard metric.
+class ChessSpiral {
+   public:
+    class Iterator {
+       public:
+        using difference_type = std::ptrdiff_t;
+        
+        Iterator(Coord start, Coord cur) : start_(start), cur_(cur) {}
+
+        Coord operator*() const {
+            return cur_;
+        }
+
+        Iterator& operator++() {
+            Coord delta = cur_ - start_;
+
+            if (InRange(delta.j, delta.i, -delta.j)) {
+                cur_ += {1, 0};
+            } else if (InRange(-delta.i, delta.j, delta.i)) {
+                cur_ += {0, 1};
+            } else if (InRange(-delta.j, -delta.i, delta.j)) {
+                cur_ += {-1, 0};
+            } else if (InRange(delta.i, -delta.j, -delta.i)) {
+                cur_ += {0, -1};
+            }
+
+            delta = cur_ - start_;
+            if (delta.i == delta.j && delta.i >= 0) {
+                cur_ += {1, 1};
+            }
+            return *this;
+        }
+
+        Iterator operator++(int) {
+            Iterator current = *this;
+            ++(*this);
+            return current;
+        }
+
+        bool operator==(const Iterator&) const = default;
+
+       private:
+        static bool InRange(int a, int b, int c) {
+            return a <= b && b < c;
+        }
+        
+        Coord start_;
+        Coord cur_;
+    };
+    using iterator = Iterator;
+
+    ChessSpiral(const Coord& start) : start_(start) {}
+
+    Iterator begin() const {
+        return Iterator(start_, start_);
+    }
+
+    std::unreachable_sentinel_t end() const {
+        return std::unreachable_sentinel;
+    }
+
+   private:
+    Coord start_;
 };
 
 // Convenient struct to represent a pair (position, direction).

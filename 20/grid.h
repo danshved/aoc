@@ -120,6 +120,12 @@ class Bounds {
             return *this;
         }
 
+        Iterator operator++(int) {
+            Iterator current = *this;
+            ++(*this);
+            return current;
+        }
+
         bool operator==(const Iterator& other) const {
             if (size_j_ != other.size_j_) {
                 return false;
