@@ -23,8 +23,8 @@
 int main() {
     std::vector<std::string> input = Split(Trim(GetContents("input.txt")), '\n');
     auto [size_i, size_j] = Sizes<2>(input);
-    Coord start;
-    std::tie(start.i, start.j) = FindOrDie<2>(input, '^');
+    auto [i, j] = FindOrDie<2>(input, '^');
+    PosDir start = {{i, j}, kNorth};
 
     int count = 0;
     for (Coord obs : Bounds(size_i, size_j)) {
@@ -34,20 +34,18 @@ int main() {
         }
 
         std::unordered_set<PosDir> visited;
-        Coord guard = start;
-        Coord dir = kNorth;
+        PosDir guard = start;
         while (true) {
-            if (auto [_, ok] = visited.insert({guard, dir}); !ok) {
+            if (auto [_, inserted] = visited.insert(guard); !inserted) {
                 count++;
                 break;
             }
 
-            Coord next = guard + dir;
-            if (!InBounds(next, size_i, size_j)) {
+            PosDir next = guard.Step();
+            if (!InBounds(next.pos, size_i, size_j)) {
                 break;
-            }
-            if (input[next.i][next.j] == '#' || next == obs) {
-                dir = dir.RotateRight();
+            } else if (input[next.pos.i][next.pos.j] == '#' || next.pos == obs) {
+                guard = guard.RotateRight();
             } else {
                 guard = next;
             }

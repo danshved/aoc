@@ -141,6 +141,22 @@ struct PosDir {
         : pos(the_pos), dir(the_dir) {}
 
     bool operator<=>(const PosDir&) const = default;
+
+    PosDir Step() const {
+        return {pos + dir, dir};
+    }
+
+    PosDir StepBack() const {
+        return {pos - dir, dir};
+    }
+
+    PosDir RotateRight() const {
+        return {pos, dir.RotateRight()};
+    }
+
+    PosDir RotateLeft() const {
+        return {pos, dir.RotateLeft()};
+    }
 };
 
 template <>

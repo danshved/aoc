@@ -40,10 +40,10 @@ State Next(const State& s) {
         return kOutside;
     }
 
-    Coord next = s.pos + s.dir;
-    return (!InBounds(next, size_i, size_j)) ? kOutside
-           : (input[next.i][next.j] == '#')  ? State{s.pos, s.dir.RotateRight()}
-                                             : State{next, s.dir};
+    State next = s.Step();
+    return (!InBounds(next.pos, size_i, size_j))    ? kOutside
+           : (input[next.pos.i][next.pos.j] == '#') ? s.RotateRight()
+                                                    : next;
 }
 
 // Helper: map whose keys are states.
@@ -193,7 +193,7 @@ int main() {
 
             // Instead of walking through the obstacle, stop in front of it
             // and rotate 90 degrees.
-            guard = {hit.pos - hit.dir, hit.dir.RotateRight()};
+            guard = hit.StepBack().RotateRight();
         }
     }
 
