@@ -31,6 +31,9 @@ int main() {
     std::unordered_set<NTuple<3, std::string>, TupleHasher> seen;
     int answer = 0;
     for (const auto& [a, a_out] : edges) {
+        if (a[0] != 't') {
+            continue;
+        }
         for (const auto& b : a_out) {
             for (const auto& c : a_out) {
                 if (c <= b) {
@@ -39,9 +42,7 @@ int main() {
                 if (!edges[b].contains(c)) {
                     continue;
                 }
-                if (a[0] != 't' && b[0] != 't' && c[0] != 't') {
-                    continue;
-                }
+
                 std::vector<std::string> v = {a, b, c};
                 std::sort(v.begin(), v.end());
                 NTuple<3, std::string> t = {v[0], v[1], v[2]};
