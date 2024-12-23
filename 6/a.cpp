@@ -35,7 +35,7 @@ int main() {
         if (!InBounds(next, size_i, size_j)) {
             break;
         } else if (input[next.i][next.j] == '#') {
-            dir = dir.CW();
+            dir = dir.RotateRight();
         } else {
             guard = next;
         }

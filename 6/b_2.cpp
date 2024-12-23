@@ -42,7 +42,7 @@ State Next(const State& s) {
 
     Coord next = s.pos + s.jump;
     return (!InBounds(next, size_i, size_j)) ? kOutside
-           : (input[next.i][next.j] == '#')  ? State{s.pos, s.jump.CW()}
+           : (input[next.i][next.j] == '#')  ? State{s.pos, s.jump.RotateRight()}
                                              : State{next, s.jump};
 }
 
@@ -193,7 +193,7 @@ int main() {
 
             // Instead of walking through the obstacle, stop in front of it
             // and rotate 90 degrees.
-            guard = {hit.pos - hit.jump, hit.jump.CW()};
+            guard = {hit.pos - hit.jump, hit.jump.RotateRight()};
         }
     }
 

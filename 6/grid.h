@@ -42,11 +42,11 @@ struct Coord {
         return *this = *this * k;
     }
 
-    Coord CW() const {
+    Coord RotateRight() const {
         return {j, -i};
     }
 
-    Coord CCW() const {
+    Coord RotateLeft() const {
         return {-j, i};
     }
 

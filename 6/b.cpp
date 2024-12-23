@@ -47,7 +47,7 @@ int main() {
                 break;
             }
             if (input[next.i][next.j] == '#' || next == obs) {
-                dir = dir.CW();
+                dir = dir.RotateRight();
             } else {
                 guard = next;
             }
