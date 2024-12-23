@@ -143,15 +143,17 @@ int main() {
     // Forward depth-first search.
     DFS<State>(
         [](auto& search) {
-            search.Look(kOutside);
             for (int i = 0; i < size_i; i++) {
                 for (int j = 0; j < size_j; j++) {
-                    if (input[i][j] == '#') continue;
+                    if (input[i][j] == '#') {
+                        continue;
+                    }
                     for (Coord dir : kDirs) {
                         search.Look({{i, j}, dir});
                     }
                 }
             }
+            search.Look(kOutside);
         },
         [](auto& search, const State& u) {
             State v = Next(u);
