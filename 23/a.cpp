@@ -22,7 +22,7 @@
 int main() {
     std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), '\n');
     std::unordered_map<std::string, std::unordered_set<std::string>> edges;
-    for (const auto& line : lines) {
+    for (const std::string& line : lines) {
         auto [l, r] = Split2(line, '-');
         edges[l].insert(r);
         edges[r].insert(l);
@@ -34,8 +34,8 @@ int main() {
         if (a[0] != 't') {
             continue;
         }
-        for (const auto& b : a_out) {
-            for (const auto& c : a_out) {
+        for (const std::string& b : a_out) {
+            for (const std::string& c : a_out) {
                 if (c <= b) {
                     continue;
                 }
