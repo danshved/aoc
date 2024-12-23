@@ -15,6 +15,8 @@
 #include <vector>
 
 #include "collections.h"
+#include "graph_search.h"
+#include "grid.h"
 #include "numbers.h"
 #include "order.h"
 #include "parse.h"
