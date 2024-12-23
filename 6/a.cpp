@@ -15,46 +15,27 @@
 #include <vector>
 
 #include "collections.h"
+#include "grid.h"
 #include "numbers.h"
 #include "order.h"
 #include "parse.h"
 
-struct Coord {
-    int i, j;
-
-    Coord operator+(const Coord& other) const {
-        return {i + other.i, j + other.j};
-    }
-
-    bool operator==(const Coord&) const = default;
-};
-
-template<> struct std::hash<Coord> {
-    size_t operator()(const Coord &c) const {
-        return SeqHash(c.i, c.j);
-    }
-};
-
-const Coord kDirs[4] = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
-const int kUp = 0;
-
 int main() {
     std::vector<std::string> input = Split(Trim(GetContents("input.txt")), '\n');
     auto [size_i, size_j] = Sizes<2>(input);
-    auto in_bounds = [&](Coord c) {
-        return c.i >= 0 && c.i < size_i && c.j >= 0 && c.j < size_j;
-    };
 
-    int dir = kUp;
+    Coord dir = kNorth;
     Coord guard;
     std::tie(guard.i, guard.j) = FindOrDie<2>(input, '^');
 
     std::unordered_set<Coord> visited;
-    while (in_bounds(guard)) {
+    while (true) {
         visited.insert(guard);
-        Coord next = guard + kDirs[dir];
-        if (in_bounds(next) && input[next.i][next.j] == '#') {
-            dir = (dir + 1) % 4;
+        Coord next = guard + dir;
+        if (!InBounds(next, size_i, size_j)) {
+            break;
+        } else if (input[next.i][next.j] == '#') {
+            dir = dir.CW();
         } else {
             guard = next;
         }

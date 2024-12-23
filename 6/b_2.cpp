@@ -16,56 +16,16 @@
 
 #include "collections.h"
 #include "graph_search.h"
+#include "grid.h"
 #include "numbers.h"
 #include "order.h"
 #include "parse.h"
 
-struct Coord {
-    int i, j;
-
-    Coord operator+(const Coord& other) const {
-        return {i + other.i, j + other.j};
-    }
-
-    Coord operator-(const Coord& other) const {
-        return {i - other.i, j - other.j};
-    }
-
-    Coord CW() const {
-        return {j, -i};
-    }
-
-    bool operator==(const Coord&) const = default;
-};
-
-template <>
-struct std::hash<Coord> {
-    size_t operator()(const Coord& c) const {
-        return SeqHash(c.i, c.j);
-    }
-};
-
-const Coord kDirs[4] = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
-const Coord kUp = {-1, 0};
-
-// Possible states of the guard. There are 4 legal states within each cell
-// that is not '#', corresponding to 4 orientations of the guard. There is
-// one additional legal state "outside the map".
-struct State {
-    Coord pos;
-    Coord dir;
-
-    bool operator==(const State&) const = default;
-};
-
-template <>
-struct std::hash<State> {
-    size_t operator()(const State& s) const {
-        return SeqHash(s.pos, s.dir);
-    }
-};
-
-const State kOutside = {{-1, -1}, {-1, -1}};
+// Possible states of the guard. Each state is a position and a unit vector
+// representing the guard's direction. There are 4 legal states  within each
+// cell that is not '#'. There is one additional legal state "outside the map".
+using State = PosJump;
+const State kOutside = {{0, 0}, {0, 0}};
 
 std::vector<std::string> input;
 int size_i, size_j;
@@ -80,12 +40,10 @@ State Next(const State& s) {
         return kOutside;
     }
 
-    Coord next = s.pos + s.dir;
-    if (next.i < 0 || next.i >= size_i || next.j < 0 || next.j >= size_j) {
-        return kOutside;
-    }
-    return (input[next.i][next.j] == '#') ? State{s.pos, s.dir.CW()}
-                                          : State{next, s.dir};
+    Coord next = s.pos + s.jump;
+    return (!InBounds(next, size_i, size_j)) ? kOutside
+           : (input[next.i][next.j] == '#')  ? State{s.pos, s.jump.CW()}
+                                             : State{next, s.jump};
 }
 
 // Helper: map whose keys are states.
@@ -143,14 +101,12 @@ int main() {
     // Forward depth-first search.
     DFS<State>(
         [](auto& search) {
-            for (int i = 0; i < size_i; i++) {
-                for (int j = 0; j < size_j; j++) {
-                    if (input[i][j] == '#') {
-                        continue;
-                    }
-                    for (Coord dir : kDirs) {
-                        search.Look({{i, j}, dir});
-                    }
+            for (Coord pos : Bounds(size_i, size_j)) {
+                if (input[pos.i][pos.j] == '#') {
+                    continue;
+                }
+                for (Coord dir : kDirs) {
+                    search.Look({pos, dir});
                 }
             }
             search.Look(kOutside);
@@ -195,52 +151,49 @@ int main() {
 
     // Find the guard.
     auto [i, j] = FindOrDie<2>(input, '^');
-    State start = {{i, j}, kUp};
+    State start = {{i, j}, kNorth};
 
     // Try every obstacle position.
     int answer = 0;
-    Coord obs;
-    for (obs.i = 0; obs.i < size_i; obs.i++) {
-        for (obs.j = 0; obs.j < size_j; obs.j++) {
-            if (input[obs.i][obs.j] != '.') {
-                continue;
+    for (Coord obs : Bounds(size_i, size_j)) {
+        if (input[obs.i][obs.j] != '.') {
+            continue;
+        }
+
+        State guard = start;
+        std::unordered_set<Coord> seen;
+        while (true) {
+            // Jump to the next time the guard hits the obstacle, i.e.
+            // tries to enter into one of the 4 states in the obstacle cell.
+            State hit = kOutside;
+            int dist = kInf;
+            for (Coord dir : kDirs) {
+                State v = {obs, dir};
+                int v_dist = GetDistance(guard, v);
+                if (v_dist < dist) {
+                    dist = v_dist;
+                    hit = v;
+                }
             }
 
-            State guard = start;
-            std::unordered_set<Coord> seen;
-            while (true) {
-                // Jump to the next time the guard hits the obstacle, i.e.
-                // tries to enter into one of the 4 states in the obstacle cell.
-                State hit = kOutside;
-                int dist = kInf;
-                for (Coord dir : kDirs) {
-                    State v = {obs, dir};
-                    int v_dist = GetDistance(guard, v);
-                    if (v_dist < dist) {
-                        dist = v_dist;
-                        hit = v;
-                    }
-                }
-
-                // If the obstacle is unreachable from the guard's current state,
-                // the guard ends up in a cycle away from the obstacle.
-                if (dist == kInf) {
-                    if (destiny[guard] != kOutside) {
-                        answer++;
-                    }
-                    break;
-                }
-
-                // If we already hit this side of the obstacle before, this is a cycle.
-                if (auto [_, inserted] = seen.insert(hit.dir); !inserted) {
+            // If the obstacle is unreachable from the guard's current state,
+            // the guard ends up in a cycle away from the obstacle.
+            if (dist == kInf) {
+                if (destiny[guard] != kOutside) {
                     answer++;
-                    break;
                 }
-
-                // Instead of walking through the obstacle, stop in front of it
-                // and rotate 90 degrees.
-                guard = {hit.pos - hit.dir, hit.dir.CW()};
+                break;
             }
+
+            // If we already hit this side of the obstacle before, this is a cycle.
+            if (auto [_, inserted] = seen.insert(hit.jump); !inserted) {
+                answer++;
+                break;
+            }
+
+            // Instead of walking through the obstacle, stop in front of it
+            // and rotate 90 degrees.
+            guard = {hit.pos - hit.jump, hit.jump.CW()};
         }
     }
 
