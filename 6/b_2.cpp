@@ -1,34 +1,74 @@
+#include <algorithm>
+#include <cmath>
 #include <iostream>
-#include <fstream>
-#include <string>
-#include <vector>
-#include <utility>
 #include <limits>
-#include <functional>
-#include <cassert>
+#include <map>
+#include <optional>
+#include <queue>
+#include <ranges>
+#include <set>
+#include <string>
+#include <tuple>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
-struct Dir {
-    int di;
-    int dj;
+#include "collections.h"
+#include "graph_search.h"
+#include "numbers.h"
+#include "order.h"
+#include "parse.h"
+
+struct Coord {
+    int i, j;
+
+    Coord operator+(const Coord& other) const {
+        return {i + other.i, j + other.j};
+    }
+
+    Coord operator-(const Coord& other) const {
+        return {i - other.i, j - other.j};
+    }
+
+    Coord CW() const {
+        return {j, -i};
+    }
+
+    bool operator==(const Coord&) const = default;
 };
-const Dir kDirs[4] = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
-const int kUp = 0;
 
-std::vector<std::string> input;
-int height, width;
+template <>
+struct std::hash<Coord> {
+    size_t operator()(const Coord& c) const {
+        return SeqHash(c.i, c.j);
+    }
+};
+
+const Coord kDirs[4] = {{-1, 0}, {0, 1}, {1, 0}, {0, -1}};
+const Coord kUp = {-1, 0};
 
 // Possible states of the guard. There are 4 legal states within each cell
 // that is not '#', corresponding to 4 orientations of the guard. There is
 // one additional legal state "outside the map".
 struct State {
-    int i;
-    int j;
-    int dir;
+    Coord pos;
+    Coord dir;
 
     bool operator==(const State&) const = default;
 };
 
-const State kOutside{0, 0, -1};
+template <>
+struct std::hash<State> {
+    size_t operator()(const State& s) const {
+        return SeqHash(s.pos, s.dir);
+    }
+};
+
+const State kOutside = {{-1, -1}, {-1, -1}};
+
+std::vector<std::string> input;
+int size_i, size_j;
 
 // Each legal state has exactly one next state: the one to which the guard will
 // transition according to the rules. For convenience, if the guard is outside
@@ -40,51 +80,17 @@ State Next(const State& s) {
         return kOutside;
     }
 
-    int i1 = s.i + kDirs[s.dir].di;
-    int j1 = s.j + kDirs[s.dir].dj;
-    if (i1 < 0 || i1 >= height || j1 < 0 || j1 >= width) {
+    Coord next = s.pos + s.dir;
+    if (next.i < 0 || next.i >= size_i || next.j < 0 || next.j >= size_j) {
         return kOutside;
     }
-    if (input[i1][j1] == '#') {
-        return State{s.i, s.j, (s.dir + 1) % 4};
-    }
-    return State{i1, j1, s.dir};
+    return (input[next.i][next.j] == '#') ? State{s.pos, s.dir.CW()}
+                                          : State{next, s.dir};
 }
 
-// Helper: iterate over all legal states.
-void ForEachState(std::function<void(const State&)> func) {
-    func(kOutside);
-    State s;
-    for (s.i = 0; s.i < height; s.i++) {
-        for (s.j = 0; s.j < width; s.j++) {
-            if (input[s.i][s.j] == '#') {
-                continue;
-            }
-            for (s.dir = 0; s.dir < 4; s.dir++) {
-                func(s);
-            }
-        }
-    }
-}
-
-// Helper: map with legal states as keys.
-template<typename T>
-class StateMap {
-public:
-    void Init(const T& val) {
-        _in_values.assign(height, std::vector<std::vector<T>>(width,
-                std::vector<T>(4, val)));
-        _out_value = val;
-    }
-
-    T& operator[](const State& s) {
-        return (s == kOutside) ? _out_value : _in_values[s.i][s.j][s.dir];
-    }
-
-private:
-    std::vector<std::vector<std::vector<T>>> _in_values;
-    T _out_value;
-};
+// Helper: map whose keys are states.
+template <typename T>
+using StateMap = std::unordered_map<State, T>;
 
 // There is always exactly one edge going out of every state in the state graph.
 // This means that the graph consists of one or more cycles and a bunch of trees
@@ -96,61 +102,16 @@ private:
 // each state is located within this tree-and-cycle structure.
 
 // Per-state information from the forward pass.
-StateMap<int> color;         // White/gray/black color of the state for depth first search.
-StateMap<State> destiny;     // Representative of the only cycle reachable from this state.
-StateMap<int> cycle_size;    // If we're in a cycle, the size of that cycle (>= 1). Otherwise 0.
-StateMap<int> cycle_pos;     // If we're in a cycle, our position within it.
+StateMap<State> destiny;   // Representative of the only cycle reachable from this state.
+StateMap<int> cycle_size;  // If we're in a cycle, the size of that cycle (>= 1).
+StateMap<int> cycle_pos;   // If we're in a cycle, our position within it.
 StateMap<std::vector<State>> reverse;
 
-void VisitForward(const State& u) {
-    color[u] = 1;
-
-    State v = Next(u);
-    reverse[v].push_back(u);
-    if (color[v] == 0) {
-        // Never seen state v before. Go into it recursively.
-        VisitForward(v);
-        destiny[u] = destiny[v];
-    } else if (color[v] == 1) {
-        // We found a cycle. State u becomes its representative.
-        destiny[u] = u;
-
-        int pos = 0;
-        cycle_pos[u] = pos++;
-        for (State x = Next(u); x != u; x = Next(x)) {
-            cycle_pos[x] = pos++;
-        }
-
-        cycle_size[u] = pos;
-        for (State x = Next(u); x != u; x = Next(x)) {
-            cycle_size[x] = pos;
-        }
-    } else {
-        // State v has already been visited and its destiny is known.
-        destiny[u] = destiny[v];
-    }
-
-    color[u] = 2;
-}
-
 // Per-state information from the backward pass.
-StateMap<State> root;   // Root of the tree that the state belongs to.
-StateMap<int> depth;    // Distance from the state to the root of the tree.
-StateMap<int> enter;    // Time when the state was entered in the reverse search.
-StateMap<int> leave;    // Time when the state was exited in the reverse search.
-
-void VisitBackward(const State& u, const State& r, int d) {
-    static int time = 0;
-    root[u] = r;
-    depth[u] = d;
-    enter[u] = ++time;
-    for (const State& v : reverse[u]) {
-        if (cycle_size[v] == 0) {
-            VisitBackward(v, r, d + 1);
-        }
-    }
-    leave[u] = ++time;
-}
+StateMap<State> root;  // Root of the tree that the state belongs to.
+StateMap<int> depth;   // Distance from the state to the root of the tree.
+StateMap<int> enter;   // Time when the state was entered in the reverse search.
+StateMap<int> leave;   // Time when the state was exited in the reverse search.
 
 const int kInf = std::numeric_limits<int>::max();
 
@@ -159,84 +120,99 @@ int GetDistance(const State& u, const State& v) {
     if (destiny[u] != destiny[v]) {
         return kInf;
     }
-    if (cycle_size[v] != 0) {
+    if (cycle_size.contains(v)) {
         // The simple path is u -> root[u] up the tree and then
         // root[u] -> v along the cycle.
         int pos1 = cycle_pos[root[u]];
         int pos2 = cycle_pos[v];
         int length = cycle_size[v];
-        return depth[u] + (pos2 - pos1 + length) % length; 
+        return depth[u] + (pos2 - pos1 + length) % length;
     } else if (enter[v] <= enter[u] && leave[u] <= leave[v]) {
         // The simple path is from u to v up the tree.
         return depth[u] - depth[v];
     } else {
-        // u and v are in different trees / branches.
+        // u is not a descendant of v.
         return kInf;
     }
 }
 
 int main() {
-    std::ifstream in("input.txt");
-    std::string line;
-    while (std::getline(in, line)) {
-        input.push_back(std::move(line));
-    }
-    height = input.size();
-    width = input[0].size();
+    input = Split(Trim(GetContents("input.txt")), '\n');
+    std::tie(size_i, size_j) = Sizes<2>(input);
 
-    // Forward depth-first search. 
-    color.Init(0);
-    destiny.Init(kOutside);
-    cycle_size.Init(0);
-    cycle_pos.Init(0);
-    reverse.Init(std::vector<State>());
-    ForEachState([](const State& u) {
-        if (color[u] == 0) {
-            VisitForward(u);
-        }
-    });
+    // Forward depth-first search.
+    DFS<State>(
+        [](auto& search) {
+            search.Look(kOutside);
+            for (int i = 0; i < size_i; i++) {
+                for (int j = 0; j < size_j; j++) {
+                    if (input[i][j] == '#') continue;
+                    for (Coord dir : kDirs) {
+                        search.Look({{i, j}, dir});
+                    }
+                }
+            }
+        },
+        [](auto& search, const State& u) {
+            State v = Next(u);
+            if (search.Look(v) == DFSEdge::kBack) {
+                // We found a cycle. State u becomes its representative.
+                destiny[u] = u;
+
+                auto begin = std::ranges::find(search.Path(), v);
+                auto end = search.Path().end();
+                for (auto it = begin; it != end; it++) {
+                    cycle_size[*it] = end - begin;
+                    cycle_pos[*it] = it - begin;
+                }
+            } else {
+                destiny[u] = destiny[v];
+            }
+            reverse[v].push_back(u);
+        });
 
     // Backward depth-first search starting from each in-cycle state and
     // descending into the attached trees.
-    root.Init(kOutside);
-    depth.Init(0);
-    enter.Init(0);
-    leave.Init(0);
-    ForEachState([](const State& u) {
-        if (cycle_size[u] != 0) {
-            VisitBackward(u, u, 0);
-        }
-    });
+    DFSResult<State> res = DFS<State>(
+        [](auto& search) {
+            for (const State& u : cycle_size | std::views::keys) {
+                search.Look(u);
+            }
+        },
+        [](auto& search, const State& u) {
+            root[u] = search.Path().front();
+            depth[u] = search.Path().size() - 1;
+            for (const State& v : reverse[u]) {
+                if (!cycle_size.contains(v)) {
+                    search.Look(v);
+                }
+            }
+        });
+    enter = std::move(res.enter_times);
+    leave = std::move(res.exit_times);
 
     // Find the guard.
-    State start = kOutside;
-    for (int i = 0; i < height; ++i) {
-        std::string::size_type pos = input[i].find('^');
-        if (pos != std::string::npos) {
-            start = State{i, static_cast<int>(pos), kUp};
-            break;
-        }
-    }
-    assert(start != kOutside);
+    auto [i, j] = FindOrDie<2>(input, '^');
+    State start = {{i, j}, kUp};
 
     // Try every obstacle position.
     int answer = 0;
-    for (int obs_i = 0; obs_i < height; obs_i++) {
-        for (int obs_j = 0; obs_j < width; obs_j++) {
-            if (input[obs_i][obs_j] != '.') {
+    Coord obs;
+    for (obs.i = 0; obs.i < size_i; obs.i++) {
+        for (obs.j = 0; obs.j < size_j; obs.j++) {
+            if (input[obs.i][obs.j] != '.') {
                 continue;
             }
 
             State guard = start;
-            std::vector<bool> seen(4, false);
-
-            while(true) {
+            std::unordered_set<Coord> seen;
+            while (true) {
                 // Jump to the next time the guard hits the obstacle, i.e.
                 // tries to enter into one of the 4 states in the obstacle cell.
                 State hit = kOutside;
                 int dist = kInf;
-                for (int dir = 0; dir < 4; dir++) {
-                    State v{obs_i, obs_j, dir};
+                for (Coord dir : kDirs) {
+                    State v = {obs, dir};
                     int v_dist = GetDistance(guard, v);
                     if (v_dist < dist) {
                         dist = v_dist;
@@ -254,16 +230,14 @@ int main() {
                 }
 
                 // If we already hit this side of the obstacle before, this is a cycle.
-                if (seen[hit.dir]) {
+                if (auto [_, inserted] = seen.insert(hit.dir); !inserted) {
                     answer++;
                     break;
-                } else {
-                    seen[hit.dir] = true;
                 }
 
                 // Instead of walking through the obstacle, stop in front of it
                 // and rotate 90 degrees.
-                guard = State{hit.i - kDirs[hit.dir].di, hit.j - kDirs[hit.dir].dj, (hit.dir + 1) % 4};
+                guard = {hit.pos - hit.dir, hit.dir.CW()};
             }
         }
     }
