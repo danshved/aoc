@@ -209,6 +209,88 @@ void TestRational(
     assert(acc == (R)1 / 1000);
 }
 
+void TestDFS() {
+    std::unordered_map<char, std::vector<char>> graph = {
+        {'a', {'b', 'c'}},
+        {'b', {'c', 'd'}},
+        {'c', {'d'}},
+        {'d', {'a'}},
+        {'e', {'a', 'f'}},
+        {'f', {'g', 'h'}},
+    };
+    std::vector<std::tuple<char, char, DFSEdge>> expected_edges = {
+        {'a', 'b', DFSEdge::kTree},
+        {'b', 'c', DFSEdge::kTree},
+        {'c', 'd', DFSEdge::kTree},
+        {'d', 'a', DFSEdge::kBack},
+        {'b', 'd', DFSEdge::kForward},
+        {'a', 'c', DFSEdge::kForward},
+        {'e', 'a', DFSEdge::kCross},
+        {'e', 'f', DFSEdge::kTree},
+        {'f', 'g', DFSEdge::kTree},
+        {'f', 'h', DFSEdge::kTree},
+    };
+    auto it = expected_edges.begin();
+
+    std::unordered_map<char, char> parent;
+    std::unordered_map<char, int> depth;
+    std::unordered_map<char, int> enter;
+    std::unordered_map<char, int> leave;
+
+    DFSResult<char> result = DFS<char>(
+        [&](auto& search) {
+            assert(search.Parent() == std::nullopt);
+            assert(search.Depth() == -1);
+            assert(search.Path().empty());
+
+            for (char c : std::string("abcdefgh")) {
+                search.Look(c);
+            }
+        },
+        [&, time = 0](auto& search, char u) mutable {
+            assert(!parent.contains(u));
+            assert(!depth.contains(u));
+            assert(!enter.contains(u));
+            assert(!leave.contains(u));
+
+            if (search.Parent().has_value()) {
+                parent[u] = *search.Parent();
+            }
+            depth[u] = search.Depth();
+            enter[u] = time++;
+
+            for (char v : graph[u]) {
+                assert(it != expected_edges.end());
+                auto [from, to, kind] = *it++;
+                assert (u == from);
+                assert (v == to);
+                assert (search.Look(v) == kind);
+            }
+
+            leave[u] = time++;
+        });
+
+    assert(it == expected_edges.end());
+
+    // clang-format off
+    assert((parent == std::unordered_map<char, char>{
+        {'b', 'a'}, {'c', 'b'}, {'d', 'c'}, {'f', 'e'}, {'g', 'f'}, {'h', 'f'}
+    }));
+    assert((depth == std::unordered_map<char, int>{
+        {'a', 0}, {'b', 1}, {'c', 2}, {'d', 3}, {'e', 0}, {'f', 1}, {'g', 2}, {'h', 2}
+    }));
+    assert((enter == std::unordered_map<char, int>{
+        {'a', 0}, {'b', 1}, {'c', 2}, {'d', 3}, {'e', 8}, {'f', 9}, {'g', 10}, {'h', 12}
+    }));
+    assert((leave == std::unordered_map<char, int>{
+        {'a', 7}, {'b', 6}, {'c', 5}, {'d', 4}, {'e', 15}, {'f', 14}, {'g', 11}, {'h', 13}
+    }));
+    // clang-format on
+
+    assert(result.enter_times == enter);
+    assert(result.exit_times == leave);
+}
+
 void TestDijkstra() {
     // Example graph from CLR chapter 25.
     std::unordered_map<std::string, std::vector<std::pair<std::string, int>>> graph = {
@@ -227,6 +309,7 @@ void TestDijkstra() {
             assert(!parent.contains(u));
             assert(!dist.contains(u));
             assert(!depth.contains(u));
+
             if (search.Parent().has_value()) {
                 parent[u] = *search.Parent();
             }
@@ -322,6 +405,9 @@ int main() {
     std::cerr << "Testing ConstVector..." << std::endl;
     assert((ConstVector(42, 2, 3) == NestedVector<2, int>{{42, 42, 42}, {42, 42, 42}}));
     assert(Sizes<3>(ConstVector('x', 3, 4, 5)) == std::make_tuple(3, 4, 5));
+
+    std::cerr << "Testing DFS..." << std::endl;
+    TestDFS();
 
     std::cerr << "Testing Dijkstra..." << std::endl;
     TestDijkstra();

@@ -57,6 +57,11 @@ class DFSState {
         return path_.size() - 1;
     }
 
+    std::optional<Node> Parent() {
+        return (path_.size() < 2) ? std::nullopt
+                                  : std::optional<Node>(path_[path_.size() - 2]);
+    }
+
    private:
     DFSState(VisitFunc& visit) : visit_(visit) {}
 
