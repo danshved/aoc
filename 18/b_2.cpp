@@ -38,23 +38,22 @@ int main() {
         byte_count[b.i][b.j]++;
     }
 
+    // See what's reachable with all the bytes on the ground.
     NestedVector<2, bool> reachable = ConstVector(false, kSizeI, kSizeJ);
-    auto expand = [&](const Coord& start) {
-        DFSFrom(start, [&](auto& search, const Coord& u) {
-            reachable[u.i][u.j] = true;
-            for (Coord dir : kDirs) {
-                Coord v = u + dir;
-                if (InBounds(v, kSizeI, kSizeJ) && byte_count[v.i][v.j] == 0 &&
-                    !reachable[v.i][v.j]) {
-                    search.Look(v);
-                }
+    auto expand = [&](auto& self, const Coord& u) -> bool {
+        reachable[u.i][u.j] = true;
+        for (Coord dir : kDirs) {
+            Coord v = u + dir;
+            if (InBounds(v, kSizeI, kSizeJ) && byte_count[v.i][v.j] == 0 &&
+                !reachable[v.i][v.j]) {
+                self(self, v);
             }
-        });
+        }
         return reachable[kSizeI - 1][kSizeJ - 1];
     };
+    assert(!expand(expand, {0, 0}));
 
-    // Lift the bytes one by one until the corner is reachable
-    assert(!expand({0, 0}));
+    // Lift the bytes one by one until the corner is reachable.
     for (const Coord& b : bytes | std::views::reverse) {
         byte_count[b.i][b.j]--;
         if (byte_count[b.i][b.j] > 0) {
@@ -66,7 +65,7 @@ int main() {
             })) {
             continue;
         }
-        if (expand(b)) {
+        if (expand(expand, b)) {
             std::cout << b.i << "," << b.j << std::endl;
             break;
         }
