@@ -39,17 +39,13 @@ int main() {
 
     // Vertex X is on a shortest path from S to E if and only if
     // dist(S, X) + dist(X, E) = dist(S, E).
-    auto good = [&](const PosDir& x) {
-        return from_start.contains(x) && from_end.contains(x.Flip()) &&
-               from_start[x] + from_end[x.Flip()] == from_start[end];
-    };
-    int answer = 0;
-    for (Coord pos : Bounds(size_i, size_j)) {
-        if (std::ranges::any_of(kDirs, [&](Coord dir) { return good({pos, dir}); })) {
-            answer++;
-        }
-    }
-
+    int answer = std::ranges::count_if(Bounds(size_i, size_j), [&](Coord pos) {
+        return std::ranges::any_of(kDirs, [&](Coord dir) {
+            PosDir x = {pos, dir};
+            return from_start.contains(x) && from_end.contains(x.Flip()) &&
+                   from_start[x] + from_end[x.Flip()] == from_start[end];
+        });
+    });
     std::cout << answer << std::endl;
     return 0;
 }

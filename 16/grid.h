@@ -1,8 +1,8 @@
 #ifndef __AOC_GRID_H__
 #define __AOC_GRID_H__
 
-#include <unordered_map>
 #include <iterator>
+#include <unordered_map>
 
 #include "collections.h"
 
@@ -108,6 +108,11 @@ class Bounds {
    public:
     class Iterator {
        public:
+        using difference_type = std::ptrdiff_t;
+        using value_type = Coord;
+
+        Iterator() {}
+
         Iterator(const Coord& cur, int size_j) : cur_(cur), size_j_(size_j) {}
 
         Coord operator*() const {
@@ -143,7 +148,7 @@ class Bounds {
 
        private:
         Coord cur_;
-        int size_j_;
+        int size_j_ = 0;
     };
 
     using iterator = Iterator;
@@ -173,6 +178,9 @@ class ManhattanSpiral {
     class Iterator {
        public:
         using difference_type = std::ptrdiff_t;
+        using value_type = Coord;
+
+        Iterator() {}
 
         Iterator(Coord start, Coord cur) : start_(start), cur_(cur) {}
 
@@ -232,7 +240,10 @@ class ChessSpiral {
     class Iterator {
        public:
         using difference_type = std::ptrdiff_t;
-        
+        using value_type = Coord;
+
+        Iterator() {}
+
         Iterator(Coord start, Coord cur) : start_(start), cur_(cur) {}
 
         Coord operator*() const {
@@ -271,7 +282,7 @@ class ChessSpiral {
         static bool InRange(int a, int b, int c) {
             return a <= b && b < c;
         }
-        
+
         Coord start_;
         Coord cur_;
     };
