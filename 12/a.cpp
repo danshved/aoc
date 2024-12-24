@@ -28,14 +28,16 @@ int main() {
     DFS<Coord>(
         [&](auto& search) {
             for (Coord u : Bounds(size_i, size_j)) {
-                area = 0;
-                perimeter = 0;
                 if (search.Look(u) == DFSEdge::kTree) {
                     answer += area * perimeter;
                 }
             }
         },
         [&](auto& search, Coord u) {
+            if (search.Depth() == 0) {
+                area = 0;
+                perimeter = 0;
+            }
             area++;
             for (Coord dir : kDirs) {
                 Coord v = u + dir;
