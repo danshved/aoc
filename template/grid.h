@@ -322,6 +322,14 @@ struct PosDir {
         return {pos - dir, dir};
     }
 
+    PosDir StrafeRight() const {
+        return {pos + dir.RotateRight(), dir};
+    }
+
+    PosDir StrafeLeft() const {
+        return {pos + dir.RotateLeft(), dir};
+    }
+
     PosDir RotateRight() const {
         return {pos, dir.RotateRight()};
     }
