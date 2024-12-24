@@ -4,6 +4,7 @@
 #include <limits>
 #include <map>
 #include <optional>
+#include <ranges>
 #include <set>
 #include <string>
 #include <tuple>
@@ -12,58 +13,33 @@
 #include <utility>
 #include <vector>
 
-#include "order.h"
+#include "collections.h"
+#include "graph_search.h"
+#include "grid.h"
 #include "numbers.h"
+#include "order.h"
 #include "parse.h"
 
-std::vector<std::string> input;
-int height, width;
-
-int count = 0;
-std::vector<std::vector<bool>> visited;
-
-struct Dir {
-    int di;
-    int dj;
-};
-Dir dirs[4] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
-
-void Visit(int i, int j) {
-    visited[i][j] = true;
-    if (input[i][j] == '9') {
-        count++;
-    }
-    for (int dir = 0; dir < 4; dir++) {
-        int i1 = i + dirs[dir].di;
-        int j1 = j + dirs[dir].dj;
-        if (i1 < 0 || i1 >= height || j1 < 0 || j1 >= width) {
-            continue;
-        }
-        if (input[i1][j1] != input[i][j] + 1) {
-            continue;
-        }
-        if (!visited[i1][j1]) {
-            Visit(i1, j1);
-        }
-    }
-}
-
 int main() {
-    input = Split(Trim(GetContents("input.txt")), '\n');
-    height = input.size();
-    width = input[0].size();
+    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), '\n');
+    auto [size_i, size_j] = Sizes<2>(input);
 
     int answer = 0;
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < width; j++) {
-            if (input[i][j] != '0') {
-                continue;
-            }
-            visited.assign(height, std::vector<bool>(width, false));
-            count = 0;
-            Visit(i, j);
-            answer += count;
+    for (Coord start : Bounds(size_i, size_j)) {
+        if (input[start.i][start.j] != '0') {
+            continue;
         }
+        DFSFrom(start, [&](auto& search, Coord u) {
+            if (input[u.i][u.j] == '9') {
+                answer++;
+            }
+            for (Coord dir : kDirs) {
+                Coord v = u + dir;
+                if (InBounds(v, size_i, size_j) && input[v.i][v.j] == input[u.i][u.j] + 1) {
+                    search.Look(v);
+                }
+            }
+        });
     }
 
     std::cout << answer << std::endl;

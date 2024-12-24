@@ -4,6 +4,7 @@
 #include <limits>
 #include <map>
 #include <optional>
+#include <ranges>
 #include <set>
 #include <string>
 #include <tuple>
@@ -12,61 +13,40 @@
 #include <utility>
 #include <vector>
 
-#include "order.h"
+#include "collections.h"
+#include "graph_search.h"
+#include "grid.h"
 #include "numbers.h"
+#include "order.h"
 #include "parse.h"
 
-std::vector<std::string> input;
-int height, width;
-const long long kInf = std::numeric_limits<long long>::max();
-
-std::vector<std::vector<long long>> counts;
-
-struct Dir {
-    int di;
-    int dj;
-};
-Dir dirs[4] = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
-
-long long GetCount(int i, int j) {
-    if (long long c = counts[i][j]; c != kInf) {
-        return c;
-    }
-
-    if (input[i][j] == '9') {
-        counts[i][j] = 1;
-        return counts[i][j];
-    }
-
-    counts[i][j] = 0;
-    for (int dir = 0; dir < 4; dir++) {
-        int i1 = i + dirs[dir].di;
-        int j1 = j + dirs[dir].dj;
-        if (i1 < 0 || i1 >= height || j1 < 0 || j1 >= width) {
-            continue;
-        }
-        if (input[i1][j1] != input[i][j] + 1) {
-            continue;
-        }
-        counts[i][j] += GetCount(i1, j1);
-    }
-    return counts[i][j];
-}
-
 int main() {
-    input = Split(Trim(GetContents("input.txt")), '\n');
-    height = input.size();
-    width = input[0].size();
+    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), '\n');
+    auto [size_i, size_j] = Sizes<2>(input);
 
-    long long answer = 0;
-    counts.assign(height, std::vector<long long>(width, kInf));
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < width; j++) {
-            if (input[i][j] == '0') {
-                answer += GetCount(i, j);
+    std::unordered_map<Coord, int> count;
+    int answer = 0;
+    DFS<Coord>(
+        [&](auto& search) {
+            for (Coord u : Bounds(size_i, size_j)) {
+                if (input[u.i][u.j] == '0') {
+                    search.Look(u);
+                    answer += count[u];
+                }
             }
-        }
-    }
+        },
+        [&](auto& search, Coord u) {
+            if (input[u.i][u.j] == '9') {
+                count[u] = 1;
+            }
+            for (Coord dir : kDirs) {
+                Coord v = u + dir;
+                if (InBounds(v, size_i, size_j) && input[v.i][v.j] == input[u.i][u.j] + 1) {
+                    search.Look(v);
+                    count[u] += count[v];
+                }
+            }
+        });
 
     std::cout << answer << std::endl;
     return 0;
