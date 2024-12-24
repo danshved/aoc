@@ -12,85 +12,65 @@
 #include <utility>
 #include <vector>
 
+#include "collections.h"
+#include "graph_search.h"
+#include "grid.h"
 #include "numbers.h"
 #include "order.h"
 #include "parse.h"
 
-int dirs[4][2] = {{1, 0}, {0, 1}, {-1, 0}, {0, -1}};
-
-std::vector<std::string> input;
-int width, height;
-
-std::vector<std::vector<bool>> visited;
-int vertices;
-std::vector<std::vector<std::vector<bool>>> fence;
-std::vector<std::vector<std::vector<bool>>> visited_fence;
-
-void Visit(int i, int j) {
-    vertices++;
-    visited[i][j] = true;
-    for (int dir = 0; dir < 4; dir++) {
-        int i1 = i + dirs[dir][0];
-        int j1 = j + dirs[dir][1];
-        if (i1 < 0 || i1 >= height || j1 < 0 || j1 >= width || input[i][j] != input[i1][j1]) {
-            fence[i][j][dir] = true;
-        } else if (!visited[i1][j1]) {
-            Visit(i1, j1);
-        }
-    }
-}
-
-void VisitFence(int i, int j, int dir) {
-    visited_fence[i][j][dir] = true;
-    for (int d = 1; d <= 3; d += 2) {
-        int dir2 = (dir + d) % 4;
-        int i1 = i + dirs[dir2][0];
-        int j1 = j + dirs[dir2][1];
-        if (i1 < 0 || i1 >= height || j1 < 0 || j1 >= width || !fence[i1][j1][dir]) {
-            continue;
-        }
-        if (!visited_fence[i1][j1][dir]) {
-            VisitFence(i1, j1, dir);
-        }
-    }
-}
-
 int main() {
-    input = Split(Trim(GetContents("input.txt")), '\n');
-    height = input.size();
-    width = input[0].size();
+    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), '\n');
+    auto [size_i, size_j] = Sizes<2>(input);
 
     int answer = 0;
-    visited.assign(height, std::vector<bool>(width, false));
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < width; j++) {
-            if (visited[i][j]) {
-                continue;
-            }
+    int area;
+    std::unordered_set<PosDir> border;
+    DFS<Coord>(
+        [&](auto& search) {
+            for (Coord u : Bounds(size_i, size_j)) {
+                if (search.Look(u) != DFSEdge::kTree) {
+                    continue;
+                }
 
-            vertices = 0;
-            fence.assign(height, std::vector<std::vector<bool>>(width, std::vector<bool>(4, false)));
-            Visit(i, j);
-
-            int sides = 0;
-            visited_fence.assign(height, std::vector<std::vector<bool>>(width, std::vector<bool>(4, false)));
-            for (int i1 = 0; i1 < height; i1++) {
-                for (int j1 = 0; j1 < width; j1++) {
-                    for (int dir = 0; dir < 4; dir++) {
-                        if (!fence[i1][j1][dir]) {
-                            continue;
+                int sides = 0;
+                DFS<PosDir>(
+                    [&](auto& inner) {
+                        for (const PosDir& x : border) {
+                            if (inner.Look(x) == DFSEdge::kTree) {
+                                sides++;
+                            }
                         }
-                        if (!visited_fence[i1][j1][dir]) {
-                            VisitFence(i1, j1, dir);
-                            sides++;
+                    },
+                    [&](auto& inner, const PosDir& x) {
+                        if (border.contains(x.StrafeRight())) {
+                            inner.Look(x.StrafeRight());
+                        }
+                        if (border.contains(x.StrafeLeft())) {
+                            inner.Look(x.StrafeLeft());
                         }
                     }
+                );
+
+                answer += area * sides;
+            }
+        },
+        [&](auto& search, Coord u) {
+            if (search.Depth() == 0) {
+                area = 0;
+                border.clear();
+            }
+            
+            area++;
+            for (Coord dir : kDirs) {
+                Coord v = u + dir;
+                if (!InBounds(v, size_i, size_j) || input[v.i][v.j] != input[u.i][u.j]) {
+                    border.insert({u, dir});
+                } else {
+                    search.Look(v);
                 }
             }
-
-            answer += vertices * sides;
-        }
-    }
+        });
 
     std::cout << answer << std::endl;
     return 0;
