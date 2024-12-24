@@ -53,6 +53,10 @@ class DFSState {
         return path_;
     }
 
+    int Depth() const {
+        return path_.size() - 1;
+    }
+
    private:
     DFSState(VisitFunc& visit) : visit_(visit) {}
 
