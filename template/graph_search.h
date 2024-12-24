@@ -83,4 +83,68 @@ DFSResult<Node, Hasher> DFSFrom(const Node& start, VisitFunc&& visit) {
         std::forward<VisitFunc>(visit));
 }
 
+enum class BFSEdge {
+    kTree = 0,
+    kTight = 1,
+    kLoose = 2,
+};
+
+// The result of BFS() is the map containing the depths of all visited nodes.
+// Nodes discovered by StartFunc have depth 0, other nodes have depth > 0.
+template <typename Node, typename Hasher = std::hash<Node>>
+using BFSResult = std::unordered_map<Node, int, Hasher>;
+
+template <typename Node, typename Hasher, typename StartFunc, typename VisitFunc>
+class BFSState {
+   public:
+    BFSEdge Look(const Node& node) {
+        auto [iter, inserted] = depths_.insert(std::make_pair(node, depth_ + 1));
+        if (inserted) {
+            queue_.push(node);
+            return BFSEdge::kTree;
+        }
+        if (iter->second == depth_ + 1) {
+            return BFSEdge::kTight;
+        }
+        assert(iter->second <= depth_);
+        return BFSEdge::kLoose;
+    }
+
+    int Depth() const {
+        return depth_;
+    }
+
+   private:
+    BFSState() = default;
+
+    friend BFSResult<Node, Hasher> BFS<Node, Hasher, StartFunc, VisitFunc>(
+        StartFunc&&, VisitFunc&&);
+
+    std::queue<Node> queue_;
+    std::unordered_map<Node, int, Hasher> depths_;
+    int depth_ = -1;
+};
+
+template <typename Node, typename Hasher = std::hash<Node>,
+          typename StartFunc, typename VisitFunc>
+BFSResult<Node, Hasher> BFS(StartFunc&& start, VisitFunc&& visit) {
+    BFSState<Node, Hasher, StartFunc, VisitFunc> state;
+    start(state);
+    while (!state.queue_.empty()) {
+        Node node = state.queue_.front();
+        state.queue_.pop();
+        state.depth_ = state.depths_.at(node);
+        visit(state, node);
+    }
+    return std::move(state.depths_);
+}
+
+template <typename Node, typename Hasher = std::hash<Node>,
+          typename VisitFunc>
+BFSResult<Node, Hasher> BFSFrom(const Node& start, VisitFunc&& visit) {
+    return BFS<Node, Hasher>(
+        [&start](auto& search) { search.Look(start); },
+        std::forward<VisitFunc>(visit));
+}
+
 #endif
