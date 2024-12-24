@@ -1,6 +1,8 @@
 #ifndef __AOC_GRAPH_SEARCH_H__
 #define __AOC_GRAPH_SEARCH_H__
 
+#include <algorithm>
+#include <queue>
 #include <unordered_map>
 #include <vector>
 
@@ -144,6 +146,76 @@ template <typename Node, typename Hasher = std::hash<Node>,
 BFSResult<Node, Hasher> BFSFrom(const Node& start, VisitFunc&& visit) {
     return BFS<Node, Hasher>(
         [&start](auto& search) { search.Look(start); },
+        std::forward<VisitFunc>(visit));
+}
+
+// The result of Diskstra() is the set of vertices that have been reached.
+template <typename Node, typename Dist, typename Hasher = std::hash<Node>>
+using DijkstraResult = std::unordered_map<Node, Dist, Hasher>;
+
+template <typename Node, typename Dist>
+struct DistUpdate {
+    Node node;
+    Dist dist;
+
+    auto operator<=>(const DistUpdate& other) const {
+        return other.dist <=> dist;
+    }
+};
+
+template <typename Node, typename Dist, typename Hasher,
+          typename StartFunc, typename VisitFunc>
+class DiskstraState {
+   public:
+    void Look(const Node& node, Dist dist) {
+        Push({node, dist});
+    }
+
+   private:
+    DiskstraState() = default;
+
+    void Push(const DistUpdate<Node, Dist>& update) {
+        queue_.push_back(update);
+        std::push_heap(queue_.begin(), queue_.end());
+    }
+
+    DistUpdate<Node, Dist> Pop() {
+        std::pop_heap(queue_.begin(), queue_.end());
+        DistUpdate<Node, Dist> update = std::move(queue_.back());
+        queue_.pop_back();
+        return update;
+    }
+
+    friend DijkstraResult<Node, Dist, Hasher>
+    Dijkstra<Node, Dist, Hasher, StartFunc, VisitFunc>(
+        StartFunc&&, VisitFunc&&);
+
+    std::unordered_map<Node, Dist, Hasher> distances_;
+    std::vector<DistUpdate<Node, Dist>> queue_;
+};
+
+template <typename Node, typename Dist, typename Hasher = std::hash<Node>,
+          typename StartFunc, typename VisitFunc>
+DijkstraResult<Node, Dist, Hasher> Dijkstra(StartFunc&& start, VisitFunc&& visit) {
+    DiskstraState<Node, Dist, Hasher, StartFunc, VisitFunc> state;
+    start(state);
+    while (!state.queue_.empty()) {
+        DistUpdate<Node, Dist> update = state.Pop();
+        auto [_, inserted] = state.distances_.insert(
+            std::make_pair(update.node, update.dist));
+        if (inserted) {
+            visit(state, update.node, update.dist);
+        }
+    }
+    return std::move(state.distances_);
+}
+
+template <typename Node, typename Dist, typename Hasher = std::hash<Node>,
+          typename VisitFunc>
+DijkstraResult<Node, Dist, Hasher>
+DijkstraFrom(const Node& start, Dist dist, VisitFunc&& visit) {
+    return Dijkstra<Node, Dist, Hasher>(
+        [&start, &dist](auto& search) { search.Look(start, dist); },
         std::forward<VisitFunc>(visit));
 }
 
