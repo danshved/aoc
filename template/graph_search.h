@@ -161,6 +161,8 @@ template <typename Node, typename Dist>
 struct DistUpdate {
     Node node;
     Dist dist;
+    std::optional<Node> parent;
+    int depth;
 
     auto operator<=>(const DistUpdate& other) const {
         return other.dist <=> dist;
@@ -172,7 +174,20 @@ template <typename Node, typename Dist, typename Hasher,
 class DiskstraState {
    public:
     void Look(const Node& node, Dist dist) {
-        Push({node, dist});
+        Push({
+            .node = node,
+            .dist = dist,
+            .parent = current_.has_value() ? std::optional<Node>(current_->node) : std::nullopt,
+            .depth = Depth() + 1,
+        });
+    }
+
+    int Depth() const {
+        return current_.has_value() ? current_->depth : -1;
+    }
+
+    std::optional<Node> Parent() const {
+        return current_.has_value() ? current_->parent : std::nullopt;
     }
 
    private:
@@ -190,27 +205,32 @@ class DiskstraState {
         return update;
     }
 
+    void Run(StartFunc&& start, VisitFunc&& visit) {
+        start(*this);
+        while (!queue_.empty()) {
+            current_ = Pop();
+            auto [_, inserted] = distances_.insert(
+                std::make_pair(current_->node, current_->dist));
+            if (inserted) {
+                visit(*this, current_->node, current_->dist);
+            }
+        }
+    }
+
     friend DijkstraResult<Node, Dist, Hasher>
     Dijkstra<Node, Dist, Hasher, StartFunc, VisitFunc>(
         StartFunc&&, VisitFunc&&);
 
     std::unordered_map<Node, Dist, Hasher> distances_;
     std::vector<DistUpdate<Node, Dist>> queue_;
+    std::optional<DistUpdate<Node, Dist>> current_ = std::nullopt;
 };
 
 template <typename Node, typename Dist, typename Hasher = std::hash<Node>,
           typename StartFunc, typename VisitFunc>
 DijkstraResult<Node, Dist, Hasher> Dijkstra(StartFunc&& start, VisitFunc&& visit) {
     DiskstraState<Node, Dist, Hasher, StartFunc, VisitFunc> state;
-    start(state);
-    while (!state.queue_.empty()) {
-        DistUpdate<Node, Dist> update = state.Pop();
-        auto [_, inserted] = state.distances_.insert(
-            std::make_pair(update.node, update.dist));
-        if (inserted) {
-            visit(state, update.node, update.dist);
-        }
-    }
+    state.Run(std::forward<StartFunc>(start), std::forward<VisitFunc>(visit));
     return std::move(state.distances_);
 }
 

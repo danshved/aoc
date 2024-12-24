@@ -1,19 +1,27 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
+#include <optional>
 #include <tuple>
+#include <unordered_map>
+#include <vector>
 
 #include "collections.h"
+#include "graph_search.h"
+#include "grid.h"
 #include "numbers.h"
 #include "order.h"
 #include "parse.h"
 
 template <typename F>
 constexpr long double kEpsilon;
+
 template <>
 constexpr long double kEpsilon<float> = 1e-4;
+
 template <>
 constexpr long double kEpsilon<double> = 1e-13;
+
 template <>
 constexpr long double kEpsilon<long double> = 0;
 
@@ -201,6 +209,47 @@ void TestRational(
     assert(acc == (R)1 / 1000);
 }
 
+void TestDijkstra() {
+    // Example graph from CLR chapter 25.
+    std::unordered_map<std::string, std::vector<std::pair<std::string, int>>> graph = {
+        {"s", {{"x", 5}, {"u", 10}}},
+        {"x", {{"u", 3}, {"y", 2}, {"v", 9}}},
+        {"u", {{"x", 2}, {"v", 1}}},
+        {"y", {{"s", 7}, {"v", 6}}},
+        {"v", {{"y", 4}}},
+    };
+    std::unordered_map<std::string, std::string> parent;
+    std::unordered_map<std::string, int> dist;
+    std::unordered_map<std::string, int> depth;
+
+    DijkstraResult<std::string, int> result =
+        DijkstraFrom(std::string("s"), 0, [&](auto& search, const std::string& u, int d) {
+            assert(!parent.contains(u));
+            assert(!dist.contains(u));
+            assert(!depth.contains(u));
+            if (search.Parent().has_value()) {
+                parent[u] = *search.Parent();
+            }
+            dist[u] = d;
+            depth[u] = search.Depth();
+
+            for (const auto& [v, weight] : graph[u]) {
+                search.Look(v, d + weight);
+            }
+        });
+
+    assert((parent ==
+            std::unordered_map<std::string, std::string>{
+                {"x", "s"}, {"u", "x"}, {"y", "x"}, {"v", "u"}}));
+    assert((dist ==
+            std::unordered_map<std::string, int>{
+                {"s", 0}, {"x", 5}, {"y", 7}, {"u", 8}, {"v", 9}}));
+    assert((depth ==
+            std::unordered_map<std::string, int>{
+                {"s", 0}, {"x", 1}, {"y", 2}, {"u", 2}, {"v", 3}}));
+    assert(result == dist);
+}
+
 int main() {
     std::cerr << "Testing Gcd() and Euclid()..." << std::endl;
     for (int i = -100; i < 100; i++) {
@@ -273,6 +322,9 @@ int main() {
     std::cerr << "Testing ConstVector..." << std::endl;
     assert((ConstVector(42, 2, 3) == NestedVector<2, int>{{42, 42, 42}, {42, 42, 42}}));
     assert(Sizes<3>(ConstVector('x', 3, 4, 5)) == std::make_tuple(3, 4, 5));
+
+    std::cerr << "Testing Dijkstra..." << std::endl;
+    TestDijkstra();
 
     std::cerr << "OK" << std::endl;
     return 0;
