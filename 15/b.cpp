@@ -15,32 +15,14 @@
 #include <vector>
 
 #include "collections.h"
+#include "graph_search.h"
+#include "grid.h"
 #include "numbers.h"
 #include "order.h"
 #include "parse.h"
 
-struct Coord {
-    int i;
-    int j;
-};
-
 const std::unordered_map<char, std::string> kSubst =
     {{'#', "##"}, {'.', ".."}, {'O', "[]"}, {'@', "@."}};
-
-const std::unordered_map<char, Coord> kDirs =
-    {{'^', {-1, 0}}, {'v', {1, 0}}, {'<', {0, -1}}, {'>', {0, 1}}};
-
-std::vector<std::string> matrix;
-int height, width;
-
-bool InBounds(Coord c) {
-    return c.i >= 0 && c.i < height && c.j >= 0 && c.j < width;
-}
-
-Coord SecondHalf(Coord c) {
-    assert(matrix[c.i][c.j] == '[' || matrix[c.i][c.j] == ']');
-    return (matrix[c.i][c.j] == '[') ? Coord{c.i, c.j + 1} : Coord{c.i, c.j - 1};
-}
 
 int main() {
     std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), '\n');
@@ -48,86 +30,57 @@ int main() {
     std::string moves = Concat(std::move(bottom));
 
     // Transform the matrix for part 2.
+    std::vector<std::string> matrix;
     for (const std::string& s : pre_matrix) {
         matrix.push_back(ConcatMap(s, [](char c) {
             return kSubst.at(c);
         }));
     }
-    height = matrix.size();
-    width = matrix[0].size();
+    auto [size_i, size_j] = Sizes<2>(matrix);
+    auto second_half = [&](Coord c) {
+        assert(matrix[c.i][c.j] == '[' || matrix[c.i][c.j] == ']');
+        return (matrix[c.i][c.j] == '[') ? Coord{c.i, c.j + 1} : Coord{c.i, c.j - 1};
+    };
 
-    // Locate the robot.
-    Coord robot;
-    std::tie(robot.i, robot.j) = FindOrDie<2>(matrix, '@');
-    matrix[robot.i][robot.j] = '.';
-
+    Coord robot = FindOrDie<2>(matrix, '@');
     for (char c : moves) {
-        Coord d = kDirs.at(c);
+        Coord dir = kCharToDir.at(c);
 
-        // BFS bookkeeping.
-        std::queue<Coord> q;
-        std::vector<std::vector<bool>> added(height, std::vector<bool>(width, false));
-
-        // BFS output.
+        // Build the list of all cells to move. The list will be ordered so that
+        // each cell comes after its blockers.
         std::vector<Coord> to_move;
         bool stuck = false;
-
-        // Breadth first search to build the list of all cells to_move. The
-        // list will be ordered so that each cell comes before its blockers.
-        q.push(robot);
-        added[robot.i][robot.j] = true;
-        while (!q.empty()) {
-            Coord pusher = q.front();
-            q.pop();
-
-            // See where the current cell ("the pusher") wants to move.
-            Coord next = {pusher.i + d.i, pusher.j + d.j};
-            if (!InBounds(next) || matrix[next.i][next.j] == '#') {
+        DFSFrom(robot, [&](auto& search, const Coord& pusher) {
+            Coord next = pusher + dir;
+            if (!InBounds(next, size_i, size_j) || matrix[next.i][next.j] == '#') {
                 stuck = true;
-                break;
+                return;
             }
-            if (matrix[next.i][next.j] == '.') {
-                continue;
-            }
-
-            // Build the list of cells that the pusher is pushing. It's pushing
-            // one cell if moving horizontally and two cells ("[]") if moving
-            // vertically.
-            std::vector<Coord> pushees = {next};
-            if (d.i != 0) {
-                pushees.push_back(SecondHalf(next));
-            }
-
-            // Add the cells being pushed to the queue.
-            for (const Coord& pushee : pushees) {
-                if (!added[pushee.i][pushee.j]) {
-                    q.push(pushee);
-                    added[pushee.i][pushee.j] = true;
-                    to_move.push_back(pushee);
+            if (matrix[next.i][next.j] != '.') {
+                search.Look(next);
+                if (dir.i != 0) {
+                    search.Look(second_half(next));
                 }
             }
-        }
+            to_move.push_back(pusher);
+        });
 
-        // Now move everything that needs to be moved at once.
+        // Now move everything that needs to be moved.
         if (!stuck) {
-            for (const auto& [i, j] : to_move | std::views::reverse) {
-                matrix[i + d.i][j + d.j] = std::exchange(matrix[i][j], '.');
+            for (Coord c : to_move) {
+                Coord next = c + dir;
+                matrix[next.i][next.j] = std::exchange(matrix[c.i][c.j], '.');
             }
-            robot.i += d.i;
-            robot.j += d.j;
+            robot += dir;
         }
     }
 
-    // Compute the answer.
     int answer = 0;
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < width; j++) {
-            if (matrix[i][j] == '[') {
-                answer += 100 * i + j;
-            }
+    for (auto [i, j] : Bounds(size_i, size_j)) {
+        if (matrix[i][j] == '[') {
+            answer += 100 * i + j;
         }
     }
-
     std::cout << answer << std::endl;
     return 0;
 }
