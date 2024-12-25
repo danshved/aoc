@@ -47,10 +47,10 @@ int main() {
         Coord dir = kCharToDir.at(c);
 
         // Build the list of all cells to move. The list will be ordered so that
-        // each cell comes after its blockers.
+        // each cell comes before its blockers.
         std::vector<Coord> to_move;
         bool stuck = false;
-        DFSFrom(robot, [&](auto& search, const Coord& pusher) {
+        BFSFrom(robot, [&](auto& search, const Coord& pusher) {
             Coord next = pusher + dir;
             if (!InBounds(next, size_i, size_j) || matrix[next.i][next.j] == '#') {
                 stuck = true;
@@ -67,7 +67,7 @@ int main() {
 
         // Now move everything that needs to be moved.
         if (!stuck) {
-            for (Coord c : to_move) {
+            for (Coord c : to_move | std::views::reverse) {
                 Coord next = c + dir;
                 matrix[next.i][next.j] = std::exchange(matrix[c.i][c.j], '.');
             }
