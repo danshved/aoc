@@ -174,12 +174,78 @@ struct DistUpdate {
     }
 };
 
-template <typename Node, typename Dist, typename Hasher,
+template <typename Node, typename Dist>
+class HeapQueue {
+   public:
+    void Push(const DistUpdate<Node, Dist>& update) {
+        queue_.push_back(update);
+        std::push_heap(queue_.begin(), queue_.end());
+    }
+
+    DistUpdate<Node, Dist> Pop() {
+        std::pop_heap(queue_.begin(), queue_.end());
+        DistUpdate<Node, Dist> update = std::move(queue_.back());
+        queue_.pop_back();
+        return update;
+    }
+
+    bool Empty() {
+        return queue_.empty();
+    }
+
+   private:
+    std::vector<DistUpdate<Node, Dist>> queue_;
+};
+
+// Priority queue for non-negative integer distances that are not much higher
+// than the last distance that's been popped.
+template <typename Node>
+class ShortQueue {
+   public:
+    void Push(const DistUpdate<Node, int>& update) {
+        assert(update.dist >= dist_);
+        buckets_[update.dist].push_back(update);
+        count_++;
+    }
+
+    DistUpdate<Node, int> Pop() {
+        assert(!Empty());
+        auto it = buckets_.find(dist_);
+        while (true) {
+            if (it == buckets_.end()) {
+                dist_++;
+                it = buckets_.find(dist_);
+            } else if (it->second.empty()) {
+                buckets_.erase(it);
+                dist_++;
+                it = buckets_.find(dist_);
+            } else {
+                break;
+            }
+        }
+
+        DistUpdate<Node, int> update = std::move(it->second.back());
+        it->second.pop_back();
+        count_--;
+        return update;
+    }
+
+    bool Empty() {
+        return count_ == 0;
+    }
+
+   private:
+    int dist_ = 0;
+    int count_ = 0;
+    std::unordered_map<int, std::vector<DistUpdate<Node, int>>> buckets_;
+};
+
+template <typename Node, typename Dist, typename Hasher, typename PQueue,
           typename StartFunc, typename VisitFunc>
 class DiskstraState {
    public:
     void Look(const Node& node, Dist dist) {
-        Push({
+        queue_.Push({
             .node = node,
             .dist = dist,
             .parent = current_.has_value() ? std::optional<Node>(current_->node) : std::nullopt,
@@ -198,22 +264,10 @@ class DiskstraState {
    private:
     DiskstraState() = default;
 
-    void Push(const DistUpdate<Node, Dist>& update) {
-        queue_.push_back(update);
-        std::push_heap(queue_.begin(), queue_.end());
-    }
-
-    DistUpdate<Node, Dist> Pop() {
-        std::pop_heap(queue_.begin(), queue_.end());
-        DistUpdate<Node, Dist> update = std::move(queue_.back());
-        queue_.pop_back();
-        return update;
-    }
-
     void Run(StartFunc&& start, VisitFunc&& visit) {
         start(*this);
-        while (!queue_.empty()) {
-            current_ = Pop();
+        while (!queue_.Empty()) {
+            current_ = queue_.Pop();
             auto [_, inserted] = distances_.insert(
                 std::make_pair(current_->node, current_->dist));
             if (inserted) {
@@ -223,18 +277,19 @@ class DiskstraState {
     }
 
     friend DijkstraResult<Node, Dist, Hasher>
-    Dijkstra<Node, Dist, Hasher, StartFunc, VisitFunc>(
+    Dijkstra<Node, Dist, Hasher, PQueue, StartFunc, VisitFunc>(
         StartFunc&&, VisitFunc&&);
 
+    PQueue queue_;
     std::unordered_map<Node, Dist, Hasher> distances_;
-    std::vector<DistUpdate<Node, Dist>> queue_;
     std::optional<DistUpdate<Node, Dist>> current_ = std::nullopt;
 };
 
-template <typename Node, typename Dist, typename Hasher = std::hash<Node>,
+template <typename Node, typename Dist,
+          typename Hasher = std::hash<Node>, typename PQueue = HeapQueue<Node, Dist>,
           typename StartFunc, typename VisitFunc>
 DijkstraResult<Node, Dist, Hasher> Dijkstra(StartFunc&& start, VisitFunc&& visit) {
-    DiskstraState<Node, Dist, Hasher, StartFunc, VisitFunc> state;
+    DiskstraState<Node, Dist, Hasher, PQueue, StartFunc, VisitFunc> state;
     state.Run(std::forward<StartFunc>(start), std::forward<VisitFunc>(visit));
     return std::move(state.distances_);
 }
