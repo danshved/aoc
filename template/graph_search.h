@@ -125,8 +125,26 @@ class BFSState {
         return depth_;
     }
 
+    void Abort() {
+        aborted_ = true;
+    }
+
+    bool Aborted() const {
+        return aborted_;
+    }
+
    private:
     BFSState() = default;
+
+    void Run(StartFunc&& start, VisitFunc&& visit) {
+        start(*this);
+        while (!queue_.empty() && !aborted_) {
+            Node node = queue_.front();
+            queue_.pop();
+            depth_ = depths_.at(node);
+            visit(*this, node);
+        }
+    }
 
     friend BFSResult<Node, Hasher> BFS<Node, Hasher, StartFunc, VisitFunc>(
         StartFunc&&, VisitFunc&&);
@@ -134,19 +152,14 @@ class BFSState {
     std::queue<Node> queue_;
     std::unordered_map<Node, int, Hasher> depths_;
     int depth_ = -1;
+    bool aborted_ = false;
 };
 
 template <typename Node, typename Hasher = std::hash<Node>,
           typename StartFunc, typename VisitFunc>
 BFSResult<Node, Hasher> BFS(StartFunc&& start, VisitFunc&& visit) {
     BFSState<Node, Hasher, StartFunc, VisitFunc> state;
-    start(state);
-    while (!state.queue_.empty()) {
-        Node node = state.queue_.front();
-        state.queue_.pop();
-        state.depth_ = state.depths_.at(node);
-        visit(state, node);
-    }
+    state.Run(std::forward<StartFunc>(start), std::forward<VisitFunc>(visit));
     return std::move(state.depths_);
 }
 
