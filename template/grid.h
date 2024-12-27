@@ -178,58 +178,66 @@ class Bounds {
     int size_j_;
 };
 
+// Advances the point along the path of non-decreasing Manhattan norm,
+// starting at {0, 0} and covering the entire plane.
+//
+// Returns true if the point's Manhattan norm increased after this step.
+bool ManhattanNext(Coord& c) {
+    c += (c.i < 0 && c.j <= 0)   ? Coord{1, -1}
+         : (c.i >= 0 && c.j < 0) ? Coord{1, 1}
+         : (c.i > 0 && c.j >= 0) ? Coord{-1, 1}
+         : (c.i <= 0 && c.j > 0) ? Coord{-1, -1}
+                                 : Coord{0, 0};
+
+    if (c.j == 0 && c.i >= 0) {
+        c += {1, 0};
+        return true;
+    } else {
+        return false;
+    }
+}
+
+class ManhattanIterator {
+   public:
+    using difference_type = std::ptrdiff_t;
+    using value_type = Coord;
+
+    ManhattanIterator() {}
+
+    ManhattanIterator(Coord start, Coord delta) : start_(start), delta_(delta) {}
+
+    Coord operator*() const {
+        return start_ + delta_;
+    }
+
+    ManhattanIterator& operator++() {
+        ManhattanNext(delta_);
+        return *this;
+    }
+
+    ManhattanIterator operator++(int) {
+        ManhattanIterator current = *this;
+        ++(*this);
+        return current;
+    }
+
+    bool operator==(const ManhattanIterator&) const = default;
+
+   private:
+    Coord start_;
+    Coord delta_;
+};
+
 // Infinite range going around a given cell in the order of non-decreasing
 // Manhattan metric.
 class ManhattanSpiral {
    public:
-    class Iterator {
-       public:
-        using difference_type = std::ptrdiff_t;
-        using value_type = Coord;
-
-        Iterator() {}
-
-        Iterator(Coord start, Coord cur) : start_(start), cur_(cur) {}
-
-        Coord operator*() const {
-            return cur_;
-        }
-
-        Iterator& operator++() {
-            if (cur_.i < start_.i && cur_.j <= start_.j) {
-                cur_ += {1, -1};
-            } else if (cur_.i >= start_.i && cur_.j < start_.j) {
-                cur_ += {1, 1};
-            } else if (cur_.i > start_.i && cur_.j >= start_.j) {
-                cur_ += {-1, 1};
-            } else if (cur_.i <= start_.i && cur_.j > start_.j) {
-                cur_ += {-1, -1};
-            }
-
-            if (cur_.j == start_.j && cur_.i >= start_.i) {
-                cur_ += {1, 0};
-            }
-            return *this;
-        }
-
-        Iterator operator++(int) {
-            Iterator current = *this;
-            ++(*this);
-            return current;
-        }
-
-        bool operator==(const Iterator&) const = default;
-
-       private:
-        Coord start_;
-        Coord cur_;
-    };
-    using iterator = Iterator;
+    using iterator = ManhattanIterator;
 
     ManhattanSpiral(const Coord& start) : start_(start) {}
 
-    Iterator begin() const {
-        return Iterator(start_, start_);
+    iterator begin() const {
+        return iterator(start_, {0, 0});
     }
 
     std::unreachable_sentinel_t end() const {
@@ -240,65 +248,89 @@ class ManhattanSpiral {
     Coord start_;
 };
 
+// A range listing all points at the given Manhattan distance from the given
+// point. This is a diamond shape iterated over counterclockwise.
+class ManhattanCircle {
+   public:
+    using iterator = ManhattanIterator;
+
+    ManhattanCircle(const Coord& start, int val) : start_(start), val_(val) {
+        assert(val >= 0);
+    }
+
+    iterator begin() const {
+        return iterator(start_, {val_, 0});
+    }
+
+    iterator end() const {
+        return iterator(start_, {val_ + 1, 0});
+    }
+
+   private:
+    Coord start_;
+    int val_;
+};
+
+// Advances the point along the path of non-decreasing chessboard norm,
+// starting at {0, 0} and covering the entire plane.
+//
+// Returns true if the point's Manhattan norm increased after this step.
+bool ChessNext(Coord& c) {
+    c += (c.j <= c.i && c.i < -c.j)     ? Coord{1, 0}
+         : (-c.i <= c.j && c.j < c.i)   ? Coord{0, 1}
+         : (-c.j <= -c.i && -c.i < c.j) ? Coord{-1, 0}
+         : (c.i <= -c.j && -c.j < -c.i) ? Coord{0, -1}
+                                        : Coord{0, 0};
+
+    if (c.i == c.j && c.i >= 0) {
+        c += {1, 1};
+        return true;
+    } else {
+        return false;
+    }
+}
+
+class ChessIterator {
+   public:
+    using difference_type = std::ptrdiff_t;
+    using value_type = Coord;
+
+    ChessIterator() {}
+
+    ChessIterator(Coord start, Coord delta) : start_(start), delta_(delta) {}
+
+    Coord operator*() const {
+        return start_ + delta_;
+    }
+
+    ChessIterator& operator++() {
+        ChessNext(delta_);
+        return *this;
+    }
+
+    ChessIterator operator++(int) {
+        ChessIterator current = *this;
+        ++(*this);
+        return current;
+    }
+
+    bool operator==(const ChessIterator&) const = default;
+
+   private:
+    Coord start_;
+    Coord delta_;
+};
+
 // Infinite range going around a given cell in the order of non-decreasing
 // chessboard metric.
 class ChessSpiral {
    public:
-    class Iterator {
-       public:
-        using difference_type = std::ptrdiff_t;
-        using value_type = Coord;
-
-        Iterator() {}
-
-        Iterator(Coord start, Coord cur) : start_(start), cur_(cur) {}
-
-        Coord operator*() const {
-            return cur_;
-        }
-
-        Iterator& operator++() {
-            Coord delta = cur_ - start_;
-
-            if (InRange(delta.j, delta.i, -delta.j)) {
-                cur_ += {1, 0};
-            } else if (InRange(-delta.i, delta.j, delta.i)) {
-                cur_ += {0, 1};
-            } else if (InRange(-delta.j, -delta.i, delta.j)) {
-                cur_ += {-1, 0};
-            } else if (InRange(delta.i, -delta.j, -delta.i)) {
-                cur_ += {0, -1};
-            }
-
-            delta = cur_ - start_;
-            if (delta.i == delta.j && delta.i >= 0) {
-                cur_ += {1, 1};
-            }
-            return *this;
-        }
-
-        Iterator operator++(int) {
-            Iterator current = *this;
-            ++(*this);
-            return current;
-        }
-
-        bool operator==(const Iterator&) const = default;
-
-       private:
-        static bool InRange(int a, int b, int c) {
-            return a <= b && b < c;
-        }
-
-        Coord start_;
-        Coord cur_;
-    };
-    using iterator = Iterator;
+    using iterator = ChessIterator;
 
     ChessSpiral(const Coord& start) : start_(start) {}
 
-    Iterator begin() const {
-        return Iterator(start_, start_);
+    iterator begin() const {
+        return iterator(start_, {0, 0});
     }
 
     std::unreachable_sentinel_t end() const {
@@ -307,6 +339,29 @@ class ChessSpiral {
 
    private:
     Coord start_;
+};
+
+// A range listing all points at the given Chessboard distance from the given
+// point. This is a square iterated over counterclockwise.
+class ChessCircle {
+   public:
+    using iterator = ChessIterator;
+
+    ChessCircle(const Coord& start, int val) : start_(start), val_(val) {
+        assert(val >= 0);
+    }
+
+    iterator begin() const {
+        return iterator(start_, {val_, val_});
+    }
+
+    iterator end() const {
+        return iterator(start_, {val_ + 1, val_ + 1});
+    }
+
+   private:
+    Coord start_;
+    int val_;
 };
 
 // Shortest path between two Coords using straight and diagonal moves.
@@ -409,7 +464,6 @@ class PathCC {
 
     auto end() const {
         return Iterator(std::nullopt, end_);
-
     }
 
     PathCC(const Coord& start, const Coord& end) : start_(start), end_(end) {}

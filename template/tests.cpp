@@ -334,6 +334,56 @@ void TestDijkstra() {
     assert(result == dist);
 }
 
+void TestManhattanSpiral() {
+    NestedVector<2, int> matrix = ConstVector(-1, 7, 7);
+    int count = 0;
+    for (Coord c : ManhattanSpiral({2, 3})) {
+        if (!InBounds(c, 7, 7)) {
+            continue;
+        }
+        matrix[c.i][c.j] = count++;
+        if (count >= 7 * 7) {
+            break;
+        }
+    };
+    // clang-format off
+    assert((matrix == NestedVector<2, int>{
+        {39, 30, 19,  9, 18, 29, 38},
+        {31, 20, 10,  3,  8, 17, 28},
+        {21, 11,  4,  0,  2,  7, 16},
+        {32, 22, 12,  1,  6, 15, 27},
+        {40, 33, 23,  5, 14, 26, 37},
+        {45, 41, 34, 13, 25, 36, 44},
+        {48, 46, 42, 24, 35, 43, 47},
+    }));
+    // clang-format on
+}
+
+void TestChessSpiral() {
+    NestedVector<2, int> matrix = ConstVector(-1, 7, 7);
+    int count = 0;
+    for (Coord c : ChessSpiral({2, 3})) {
+        if (!InBounds(c, 7, 7)) {
+            continue;
+        }
+        matrix[c.i][c.j] = count++;
+        if (count >= 7 * 7) {
+            break;
+        }
+    };
+    // clang-format off
+    assert((matrix == NestedVector<2, int>{
+        {31, 17, 16, 15, 14, 13, 30},
+        {32, 18,  5,  4,  3, 12, 29},
+        {33, 19,  6,  0,  2, 11, 28},
+        {34, 20,  7,  8,  1, 10, 27},
+        {35, 21, 22, 23, 24,  9, 26},
+        {36, 37, 38, 39, 40, 41, 25},
+        {42, 43, 44, 45, 46, 47, 48},
+    }));
+    // clang-format on
+}
+
 int main() {
     std::cerr << "Testing Gcd() and Euclid()..." << std::endl;
     for (int i = -100; i < 100; i++) {
@@ -420,6 +470,22 @@ int main() {
     assert((std::ranges::equal(PathCC({1, 2}, {1, 2}), std::vector<Coord>{{1, 2}})));
     assert((std::ranges::equal(PathCC({1, 2}, {3, 4}), std::vector<Coord>{{1, 2}, {2, 3}, {3, 4}})));
     assert((std::ranges::equal(PathCC({1, 2}, {3, 5}), std::vector<Coord>{{1, 2}, {2, 3}, {3, 4}, {3, 5}})));
+
+    std::cerr << "Testing ManhattanSpiral..." << std::endl;
+    TestManhattanSpiral();
+
+    std::cerr << "Testing ManhattanCircle..." << std::endl;
+    assert((std::ranges::equal(ManhattanCircle({5, 5}, 0), std::vector<Coord>{{5, 5}})));
+    assert((std::ranges::equal(ManhattanCircle({5, 5}, 2), std::vector<Coord>{
+        {7, 5}, {6, 6}, {5, 7}, {4, 6}, {3, 5}, {4, 4}, {5, 3}, {6, 4}})));
+
+    std::cerr << "Testing ChessSpiral..." << std::endl;
+    TestChessSpiral();
+
+    std::cerr << "Testing ChessCircle..." << std::endl;
+    assert((std::ranges::equal(ChessCircle({5, 5}, 0), std::vector<Coord>{{5, 5}})));
+    assert((std::ranges::equal(ChessCircle({5, 5}, 1), std::vector<Coord>{
+        {6, 6}, {5, 6}, {4, 6}, {4, 5}, {4, 4}, {5, 4}, {6, 4}, {6, 5}})));
 
     std::cerr << "OK" << std::endl;
     return 0;
