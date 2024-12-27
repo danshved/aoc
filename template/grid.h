@@ -364,6 +364,22 @@ class ChessCircle {
     int val_;
 };
 
+// A range including 4 neighbors of this point (not diagonals),
+// so that we can use for-loops like this:
+//
+// for (Coord v : Adj4(u)) {...}.
+ManhattanCircle Adj4(const Coord& c) {
+    return ManhattanCircle(c, 1);
+}
+
+// A range including 8 neighbors of this point (with diagonals),
+// so that we can use for-loops like this:
+//
+// for (Coord v :Adj8(u)) {...}.
+auto Adj8(const Coord& c) {
+    return ChessCircle(c, 1);
+}
+
 // Shortest path between two Coords using straight and diagonal moves.
 // The path is closed-open, i.e. the final point is not included.
 class PathCO {
