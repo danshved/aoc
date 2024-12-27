@@ -109,20 +109,33 @@ template <typename Node, typename Hasher, typename StartFunc, typename VisitFunc
 class BFSState {
    public:
     BFSEdge Look(const Node& node) {
-        auto [iter, inserted] = depths_.insert(std::make_pair(node, depth_ + 1));
+        int depth = Depth();
+        auto [iter, inserted] = depths_.insert(std::make_pair(node, depth + 1));
         if (inserted) {
             queue_.push(node);
+            if (current_.has_value()) {
+                parents_[node] = *current_;
+            }
             return BFSEdge::kTree;
         }
-        if (iter->second == depth_ + 1) {
+        if (iter->second == depth + 1) {
             return BFSEdge::kTight;
         }
-        assert(iter->second <= depth_);
+        assert(iter->second <= depth);
         return BFSEdge::kLoose;
     }
 
     int Depth() const {
-        return depth_;
+        return current_.has_value() ? depths_.at(*current_) : -1;
+    }
+
+    std::optional<Node> Parent() const {
+        if (!current_.has_value()) {
+            return std::nullopt;
+        }
+        auto it = parents_.find(*current_);
+        return (it == parents_.end()) ? std::nullopt
+                                      : std::optional<Node>(it->second);
     }
 
     void Abort() {
@@ -139,10 +152,9 @@ class BFSState {
     void Run(StartFunc&& start, VisitFunc&& visit) {
         start(*this);
         while (!queue_.empty() && !aborted_) {
-            Node node = queue_.front();
+            current_ = queue_.front();
             queue_.pop();
-            depth_ = depths_.at(node);
-            visit(*this, node);
+            visit(*this, *current_);
         }
     }
 
@@ -151,7 +163,8 @@ class BFSState {
 
     std::queue<Node> queue_;
     std::unordered_map<Node, int, Hasher> depths_;
-    int depth_ = -1;
+    std::unordered_map<Node, Node> parents_;
+    std::optional<Node> current_;
     bool aborted_ = false;
 };
 
