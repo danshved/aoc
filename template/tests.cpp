@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -262,9 +263,9 @@ void TestDFS() {
             for (char v : graph[u]) {
                 assert(it != expected_edges.end());
                 auto [from, to, kind] = *it++;
-                assert (u == from);
-                assert (v == to);
-                assert (search.Look(v) == kind);
+                assert(u == from);
+                assert(v == to);
+                assert(search.Look(v) == kind);
             }
 
             leave[u] = time++;
@@ -411,6 +412,14 @@ int main() {
 
     std::cerr << "Testing Dijkstra..." << std::endl;
     TestDijkstra();
+
+    std::cerr << "Testing PathCO and PathCC..." << std::endl;
+    assert((std::ranges::equal(PathCO({1, 2}, {1, 2}), std::vector<Coord>{})));
+    assert((std::ranges::equal(PathCO({1, 2}, {3, 4}), std::vector<Coord>{{1, 2}, {2, 3}})));
+    assert((std::ranges::equal(PathCO({1, 2}, {3, 5}), std::vector<Coord>{{1, 2}, {2, 3}, {3, 4}})));
+    assert((std::ranges::equal(PathCC({1, 2}, {1, 2}), std::vector<Coord>{{1, 2}})));
+    assert((std::ranges::equal(PathCC({1, 2}, {3, 4}), std::vector<Coord>{{1, 2}, {2, 3}, {3, 4}})));
+    assert((std::ranges::equal(PathCC({1, 2}, {3, 5}), std::vector<Coord>{{1, 2}, {2, 3}, {3, 4}, {3, 5}})));
 
     std::cerr << "OK" << std::endl;
     return 0;

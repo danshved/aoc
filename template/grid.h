@@ -309,6 +309,116 @@ class ChessSpiral {
     Coord start_;
 };
 
+// Shortest path between two Coords using straight and diagonal moves.
+// The path is closed-open, i.e. the final point is not included.
+class PathCO {
+   public:
+    class Iterator {
+       public:
+        using difference_type = std::ptrdiff_t;
+        using value_type = Coord;
+
+        Iterator() {}
+        Iterator(const Coord& cur, const Coord& end) : cur_(cur), end_(end) {}
+
+        Coord operator*() const {
+            return cur_;
+        }
+
+        Iterator& operator++() {
+            if (cur_ != end_) {
+                cur_ += (end_ - cur_).ChessClamp(1);
+            }
+            return *this;
+        }
+
+        Iterator operator++(int) {
+            Iterator current = *this;
+            ++(*this);
+            return current;
+        }
+
+        bool operator==(const Iterator&) const = default;
+
+       private:
+        Coord cur_;
+        Coord end_;
+    };
+    using iterator = Iterator;
+
+    Iterator begin() const {
+        return Iterator(start_, end_);
+    }
+
+    Iterator end() const {
+        return Iterator(end_, end_);
+    }
+
+    PathCO(const Coord& start, const Coord& end) : start_(start), end_(end) {}
+
+   private:
+    Coord start_;
+    Coord end_;
+};
+
+// Shortest path between two Coords using straight and diagonal moves.
+// The path is closed-closed, i.e. both the start and end points are included.
+class PathCC {
+   public:
+    class Iterator {
+       public:
+        using difference_type = std::ptrdiff_t;
+        using value_type = Coord;
+
+        Iterator() {}
+        Iterator(const std::optional<Coord>& cur, const Coord& end) : cur_(cur), end_(end) {}
+
+        Coord operator*() const {
+            return cur_.value();
+        }
+
+        Iterator& operator++() {
+            if (!cur_.has_value()) {
+                return *this;
+            }
+            if (*cur_ != end_) {
+                *cur_ += (end_ - *cur_).ChessClamp(1);
+            } else {
+                cur_ = std::nullopt;
+            }
+            return *this;
+        }
+
+        Iterator operator++(int) {
+            Iterator current = *this;
+            ++(*this);
+            return current;
+        }
+
+        bool operator==(const Iterator&) const = default;
+
+       private:
+        std::optional<Coord> cur_;
+        Coord end_;
+    };
+    using iterator = Iterator;
+
+    Iterator begin() const {
+        return Iterator(start_, end_);
+    }
+
+    auto end() const {
+        return Iterator(std::nullopt, end_);
+
+    }
+
+    PathCC(const Coord& start, const Coord& end) : start_(start), end_(end) {}
+
+   private:
+    Coord start_;
+    Coord end_;
+};
+
 // Convenient struct to represent a pair (position, direction).
 struct PosDir {
     Coord pos;
