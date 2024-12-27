@@ -83,6 +83,13 @@ struct Coord {
     int Chess() const {
         return std::max(abs(i), abs(j));
     }
+
+    // Clamp to within the given chessboard metric.
+    Coord ChessClamp(int max_chess) const {
+        assert(max_chess >= 0);
+        return {std::max(-max_chess, std::min(max_chess, i)),
+                std::max(-max_chess, std::min(max_chess, j))};
+    }
 };
 
 template <>
