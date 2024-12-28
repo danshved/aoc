@@ -22,7 +22,7 @@
 #include "parse.h"
 
 int main() {
-    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), '\n');
+    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), "\n");
 
     return 0;
 }
