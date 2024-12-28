@@ -2,6 +2,7 @@
 #define __AOC_GRID_H__
 
 #include <iterator>
+#include <ostream>
 #include <unordered_map>
 
 #include "collections.h"
@@ -35,6 +36,10 @@ struct Coord {
 
     Coord operator-(const Coord& other) const {
         return {i - other.i, j - other.j};
+    }
+
+    Coord operator-() const {
+        return {-i, -j};
     }
 
     Coord operator*(int k) const {
@@ -89,6 +94,10 @@ struct Coord {
         assert(max_chess >= 0);
         return {std::max(-max_chess, std::min(max_chess, i)),
                 std::max(-max_chess, std::min(max_chess, j))};
+    }
+
+    friend std::ostream& operator<<(std::ostream& out, const Coord& c) {
+        return out << "(" << c.i << ", " << c.j << ")";
     }
 };
 
@@ -527,6 +536,11 @@ struct PosDir {
 
     PosDir Flip() const {
         return {pos, dir.Flip()};
+    }
+
+    friend std::ostream& operator<<(std::ostream& out, const PosDir& pd) {
+        return out << "(" << pd.pos.i << ", " << pd.pos.j << " |> "
+                   << pd.dir.i << ", " << pd.dir.j << ")";
     }
 };
 
