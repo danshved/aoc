@@ -1,16 +1,10 @@
 #include <iostream>
-#include <fstream>
-#include <sstream>
 #include <regex>
 
-int main() {
-    std::ifstream in;
-    in.open("input.txt");
-    std::stringstream buffer;
-    buffer << in.rdbuf();
-    in.close();
-    std::string s = buffer.str();
+#include "parse.h"
 
+int main() {
+    std::string s = Trim(GetContents("input.txt"));
     std::regex mul_regex("mul\\((\\d+),(\\d+)\\)");
     auto muls_begin = std::sregex_iterator(s.begin(), s.end(), mul_regex);
     auto muls_end = std::sregex_iterator();
