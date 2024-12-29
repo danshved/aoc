@@ -10,14 +10,14 @@
 
 int main() {
     std::vector<std::string> input = Split(Trim(GetContents("input.txt")), "\n");
-    auto [size_i, size_j] = Sizes<2>(input);
+    Box box = Sizes<2>(input);
 
     std::unordered_set<Coord> antinodes;
-    for (Coord a : Bounds(size_i, size_j)) {
+    for (Coord a : box) {
         if (input[a.i][a.j] == '.') {
             continue;
         }
-        for (Coord b : Bounds(size_i, size_j)) {
+        for (Coord b : box) {
             if (a == b || input[a.i][a.j] != input[b.i][b.j]) {
                 continue;
             }
@@ -26,10 +26,10 @@ int main() {
             int d = Gcd(delta.i, delta.j);
             delta = Coord{delta.i / d, delta.j / d};
 
-            for (Coord cur = a; InBounds(cur, size_i, size_j); cur += delta) {
+            for (Coord cur = a; box.contains(cur); cur += delta) {
                 antinodes.insert(cur);
             }
-            for (Coord cur = a; InBounds(cur, size_i, size_j); cur -= delta) {
+            for (Coord cur = a; box.contains(cur); cur -= delta) {
                 antinodes.insert(cur);
             }
         }
