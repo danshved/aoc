@@ -1,6 +1,7 @@
 #ifndef __AOC_PARSE_H__
 #define __AOC_PARSE_H__
 
+#include <algorithm>
 #include <cassert>
 #include <cctype>
 #include <fstream>

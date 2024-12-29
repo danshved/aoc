@@ -23,8 +23,6 @@
 
 int main() {
     std::vector<std::string> input = Split(Trim(GetContents("input.txt")), "\n");
-    auto [i, j] = Sizes<2>(input);
-    std::cout << i << " " << j << std::endl;
 
     return 0;
 }
