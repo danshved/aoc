@@ -8,6 +8,13 @@
 #include <utility>
 #include <vector>
 
+// Taking a number modulo another
+template<typename T>
+T SafeMod(T a, T m) {
+    assert (m > 0);
+    return ((a % m) + m) % m;
+}
+
 // Greatest common divisor.
 template<typename T>
 T Gcd(T a, T b) {
