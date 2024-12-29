@@ -1,16 +1,20 @@
 #ifndef __AOC_PARSE_H__
 #define __AOC_PARSE_H__
 
-#include <sstream>
-#include <fstream>
-#include <vector>
-#include <string>
-#include <iterator>
-#include <cctype>
+#include <algorithm>
 #include <cassert>
+#include <cctype>
+#include <fstream>
+#include <functional>
+#include <iterator>
+#include <ranges>
+#include <sstream>
+#include <string>
+#include <tuple>
+#include <vector>
 
 // Parse vector of numbers separated by spaces and/or commas.
-template<typename T>
+template <typename T>
 std::vector<T> ParseVector(std::string s) {
     for (char& c : s) {
         if (c == ',') {
@@ -21,12 +25,12 @@ std::vector<T> ParseVector(std::string s) {
     std::istringstream iss(s);
     std::vector<T> result;
     std::copy(std::istream_iterator<T>(iss), std::istream_iterator<T>(),
-            std::back_inserter(result));
+              std::back_inserter(result));
     return result;
 }
 
 // Format vector for debugging.
-template<typename T>
+template <typename T>
 std::string FormatVector(const std::vector<T>& v, std::string delim = " ") {
     std::ostringstream oss;
     for (auto it = v.begin(); it != v.end(); ++it) {
@@ -38,71 +42,110 @@ std::string FormatVector(const std::vector<T>& v, std::string delim = " ") {
     return oss.str();
 }
 
-// Split a container into a vector of containers.
-template<typename T, typename C>
-std::vector<C> SplitImpl(const C& xs, const T& delim) {
-    std::vector<C> result;
-    C current;
-    for (const T& x : xs) {
-        if (x == delim) {
-            result.push_back(std::move(current));
-            current.clear();
+// Splits a container using the given delimiter. The resulting vector's size
+// is always one plus the largest number of non-overlapping delimiters in the
+// input.
+//
+// If the delimiter never occurs, the result is a size-1 vector containing the
+// input, even if the input is empty.
+template <typename Cont>
+std::vector<Cont> Split(const Cont& xs, const Cont& delim) {
+    auto delim_size = std::ranges::distance(std::begin(delim), std::end(delim));
+    assert(delim_size > 0);
+
+    std::vector<Cont> result;
+    const auto searcher = std::boyer_moore_searcher(std::begin(delim), std::end(delim));
+    auto cur = xs.begin(), end = xs.end();
+    while (true) {
+        auto it = std::search(cur, end, searcher);
+        result.emplace_back(cur, it);
+        if (it == end) {
+            break;
         } else {
-            current.push_back(x);
+            cur = it;
+            std::ranges::advance(cur, delim_size);
         }
     }
-    result.push_back(std::move(current));
     return result;
 }
 
-// Splits a string using the given delimiter. The resulting vector's size
-// is always one plus the number of delimiters in the string. If the string is
-// empty, the result is the vector containing one empty string.
-std::vector<std::string> Split(const std::string& s, char delim) {
-    return SplitImpl<char, std::string>(s, delim);
+// A more convenient overload of Split() for strings.
+std::vector<std::string> Split(const std::string& s, const std::string& delim) {
+    return Split<std::string>(s, delim);
 }
 
-// The version of Split() for vectors instead of strings.
-template<typename T>
-std::vector<std::vector<T>> Split(const std::vector<T>& xs, const T& delim) {
-    return SplitImpl<T, std::vector<T>>(xs, delim);
+template <typename Cont, typename I>
+auto SplitNImpl(I begin, I end) {
+    return std::make_tuple(Cont(begin, end));
 }
 
-template<typename T, typename C>
-std::pair<C, C> Split2Impl(const C& xs, const T& delim) {
-    std::pair<C, C> result;
-    bool found_delimiter = false;
-    for (const T& x : xs) {
-        if (found_delimiter) {
-            result.second.push_back(x);
-        } else if (x == delim) {
-            found_delimiter = true;
-        } else {
-            result.first.push_back(x);
-        }
+template <typename Cont, typename I, typename... Ts>
+auto SplitNImpl(I begin, I end, const Cont& delim, const Ts&... delims) {
+    auto delim_size = std::ranges::distance(std::begin(delim), std::end(delim));
+    assert(delim_size > 0);
+
+    I it = std::search(begin, end, std::boyer_moore_searcher(std::begin(delim), std::end(delim)));
+    assert(it != end);
+
+    I next = it;
+    std::ranges::advance(next, delim_size);
+    return std::tuple_cat(std::make_tuple(Cont(begin, it)),
+                          SplitNImpl<Cont, I>(next, end, delims...));
+}
+
+template <typename Cont>
+struct SplitNHelper {
+    template <typename... Ts>
+    static auto SplitN(const Cont& xs, const Ts&... delims) {
+        return SplitNImpl(xs.begin(), xs.end(), delims...);
     }
-    assert(found_delimiter);
-    return result;
+
+    template <typename I>
+    static auto SplitNImpl(I begin, I end) {
+        return std::make_tuple(Cont(begin, end));
+    }
+
+    template <typename I, typename... Ts>
+    static auto SplitNImpl(I begin, I end, const Cont& delim, const Ts&... delims) {
+        auto delim_size = std::ranges::distance(std::begin(delim), std::end(delim));
+        assert(delim_size > 0);
+
+        I it = std::search(begin, end, std::boyer_moore_searcher(std::begin(delim), std::end(delim)));
+        assert(it != end);
+
+        I next = it;
+        std::ranges::advance(next, delim_size);
+        return std::tuple_cat(std::make_tuple(Cont(begin, it)),
+                              SplitNImpl<I>(next, end, delims...));
+    }
+};
+
+template <typename Cont, typename... Ts>
+auto SplitN(const Cont& xs, const Ts&... delims) {
+    return SplitNHelper<Cont>::SplitN(xs, delims...);
 }
 
-// Splits the string at the first occurrence of `delim`. Fails with assert() if
-// `delim` does not appear in the string, including the case if the string is
-// empty.
-std::pair<std::string, std::string> Split2(const std::string& s, char delim) {
-    return Split2Impl<char, std::string>(s, delim);
+template <std::convertible_to<std::string> Cont, typename... Ts>
+auto SplitN(const Cont& xs, const Ts&... delims) {
+    return SplitNHelper<std::string>::SplitN(xs, delims...);
 }
 
-// The version of Split2() for vectors.
-template<typename T>
-std::pair<std::vector<T>, std::vector<T>> Split2(const std::vector<T>& xs, const T& delim) {
-    return Split2Impl<T, std::vector<T>>(xs, delim);
+// Convenience overload that allows doing things with brace initializers like this:
+//
+// std::vector<string> lines = {"a", "b", "", "c", "d"};
+// Split2(lines, {""});  //returns tuple of {"a", "b"} and {"c", "d"}.
+template <typename Cont>
+std::tuple<Cont, Cont> Split2(const Cont& xs, const Cont& delim) {
+    return SplitN(xs, delim);
 }
 
 // Removes whitespace in the beginning and end of a string.
 std::string Trim(const std::string& s) {
     int i = 0, j = s.length();
-    for (; i < j && std::isspace(s[i]); i++) {};
-    for(; i < j && std::isspace(s[j - 1]); j--) {};
+    for (; i < j && std::isspace(s[i]); i++) {
+    };
+    for (; i < j && std::isspace(s[j - 1]); j--) {
+    };
     return s.substr(i, j - i);
 }
 

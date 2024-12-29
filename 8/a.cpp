@@ -1,23 +1,14 @@
-#include <algorithm>
 #include <iostream>
-#include <limits>
-#include <map>
-#include <optional>
-#include <set>
 #include <string>
-#include <tuple>
-#include <unordered_map>
 #include <unordered_set>
-#include <utility>
 #include <vector>
 
 #include "collections.h"
 #include "grid.h"
-#include "lex.h"
 #include "parse.h"
 
 int main() {
-    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), '\n');
+    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), "\n");
     auto [size_i, size_j] = Sizes<2>(input);
 
     std::unordered_set<Coord> antinodes;
