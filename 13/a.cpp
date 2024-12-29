@@ -1,19 +1,9 @@
-#include <algorithm>
-#include <cmath>
 #include <iostream>
-#include <limits>
-#include <map>
-#include <optional>
-#include <set>
 #include <string>
-#include <tuple>
-#include <unordered_map>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 
-#include "order.h"
-#include "numbers.h"
+#include "collections.h"
 #include "parse.h"
 
 struct Machine {
@@ -26,13 +16,12 @@ struct Machine {
 };
 
 std::pair<int, int> ParseLine(const std::string& s) {
-    auto [unused, words] = Split2(s, ':');
-    auto [left, right] = Split2(Trim(words), ' ');
+    auto [_, left, right] = SplitN(s, ": ", ", ");
     return std::make_pair(std::stoi(left.substr(2)), std::stoi(right.substr(2)));
 }
 
 Machine ParseMachine(const std::vector<std::string>& par) {
-    assert (par.size() == 3);
+    assert(par.size() == 3);
     Machine m;
     std::tie(m.ax, m.ay) = ParseLine(par[0]);
     std::tie(m.bx, m.by) = ParseLine(par[1]);
@@ -41,7 +30,7 @@ Machine ParseMachine(const std::vector<std::string>& par) {
 }
 
 int main() {
-    std::vector<std::vector<std::string>> pars = Split(Split(Trim(GetContents("input.txt")), '\n'), std::string());
+    NestedVector<2, std::string> pars = Split(Split(Trim(GetContents("input.txt")), "\n"), {""});
 
     int answer = 0;
     for (const std::vector<std::string>& par : pars) {
