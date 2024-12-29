@@ -1,35 +1,21 @@
-#include <algorithm>
-#include <cmath>
 #include <iostream>
-#include <limits>
-#include <map>
-#include <optional>
-#include <queue>
-#include <ranges>
-#include <set>
 #include <string>
-#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
-#include <utility>
 #include <vector>
 
-#include "collections.h"
-#include "numbers.h"
-#include "order.h"
 #include "parse.h"
+#include "collections.h"
 
 int main() {
-    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), '\n');
     std::unordered_map<std::string, std::unordered_set<std::string>> edges;
-    for (const std::string& line : lines) {
-        auto [l, r] = Split2(line, '-');
+    for (const std::string& line : Split(Trim(GetContents("input.txt")), "\n")) {
+        auto [l, r] = SplitN(line, "-");
         edges[l].insert(r);
         edges[r].insert(l);
     }
 
-    std::unordered_set<NTuple<3, std::string>, TupleHasher> seen;
-    int answer = 0;
+    std::unordered_set<NTuple<3, std::string>, TupleHasher> triangles;
     for (const auto& [a, a_out] : edges) {
         if (a[0] != 't') {
             continue;
@@ -45,15 +31,11 @@ int main() {
 
                 std::vector<std::string> v = {a, b, c};
                 std::sort(v.begin(), v.end());
-                NTuple<3, std::string> t = {v[0], v[1], v[2]};
-                if (!seen.contains(t)) {
-                    seen.insert(t);
-                    answer++;
-                }
+                triangles.insert({v[0], v[1], v[2]});
             }
         }
     }
 
-    std::cout << answer << std::endl;
+    std::cout << triangles.size() << std::endl;
     return 0;
 }
