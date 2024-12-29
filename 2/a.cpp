@@ -1,18 +1,14 @@
-#include <algorithm>
-#include <fstream>
 #include <iostream>
-#include <iterator>
-#include <sstream>
-#include <string>
 #include <vector>
 
+#include "order.h"
 #include "parse.h"
 
 bool IsSafe(const std::vector<int>& x) {
     if (x[0] == x[1]) {
         return false;
     }
-    int mul = (x[0] > x[1]) ? -1 : 1;
+    int mul = Sign(x[1] - x[0]);
     for (int i = 0; i + 1 < x.size(); ++i) {
         int diff = mul * (x[i + 1] - x[i]);
         if (diff < 1 || diff > 3) {
@@ -23,11 +19,9 @@ bool IsSafe(const std::vector<int>& x) {
 }
 
 int main() {
-    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), '\n');
     int answer = 0;
-    for (const std::string& s : lines) {
-        std::vector<int> xs = ParseVector<int>(s);
-        if (IsSafe(xs)) {
+    for (const std::string& s : Split(Trim(GetContents("input.txt")), "\n")) {
+        if (IsSafe(ParseVector<int>(s))) {
             answer++;
         }
     }
