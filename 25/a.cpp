@@ -1,24 +1,9 @@
-#include <algorithm>
-#include <cmath>
 #include <iostream>
-#include <limits>
-#include <map>
-#include <optional>
-#include <queue>
 #include <ranges>
-#include <set>
 #include <string>
-#include <tuple>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
 #include <vector>
 
 #include "collections.h"
-#include "graph_search.h"
-#include "grid.h"
-#include "numbers.h"
-#include "order.h"
 #include "parse.h"
 
 bool Match(const std::vector<int>& lock, const std::vector<int>& key) {
@@ -33,7 +18,7 @@ bool Match(const std::vector<int>& lock, const std::vector<int>& key) {
 }
 
 int main() {
-    auto pars = Split(Split(Trim(GetContents("input.txt")), '\n'), std::string());
+    auto pars = Split(Split(Trim(GetContents("input.txt")), "\n"), {""});
 
     NestedVector<2, int> locks, keys;
     for (const auto& par : pars) {
@@ -49,7 +34,7 @@ int main() {
         }
     }
 
-    int answer = 0;    
+    int answer = 0;
     for (const auto& lock : locks) {
         for (const auto& key : keys) {
             if (Match(lock, key)) {
@@ -58,6 +43,5 @@ int main() {
         }
     }
     std::cout << answer << std::endl;
-
     return 0;
 }
