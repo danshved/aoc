@@ -4,6 +4,7 @@
 #include <cassert>
 #include <iterator>
 #include <optional>
+#include <ranges>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -96,7 +97,7 @@ std::optional<NTuple<n, int>> FindIf(const Cont& cont, Pred&& pred) {
         }
         return std::nullopt;
     } else {
-        for (int i = 0; i < cont.size(); i++) {
+        for (int i = 0; i < std::ranges::size(cont); i++) {
             std::optional<NTuple<n - 1, int>> res =
                 FindIf<n - 1>(cont[i], std::forward<Pred>(pred));
             if (res.has_value()) {
@@ -159,8 +160,8 @@ NTuple<n, int> Sizes(const Cont& cont) {
     if constexpr (n == 0) {
         return std::tuple<>();
     } else {
-        return std::tuple_cat(std::make_tuple((int)cont.size()),
-                              Sizes<n - 1>(cont.front()));
+        return std::tuple_cat(std::make_tuple((int)std::ranges::size(cont)),
+                              Sizes<n - 1>(*std::begin(cont)));
     }
 }
 
@@ -172,17 +173,17 @@ size_t SeqHash() {
     return 0;
 }
 
-template<typename T, typename... Ts>
+template <typename T, typename... Ts>
 size_t SeqHash(const T& val, const Ts&... vals) {
     return CombineHash(SeqHash(vals...), std::hash<T>()(val));
 }
 
-template<typename Tuple, std::size_t... Is>
+template <typename Tuple, std::size_t... Is>
 size_t TupleHashImpl(const Tuple& t, std::index_sequence<Is...>) {
     return SeqHash(std::get<Is>(t)...);
 }
 
-template<typename... Ts>
+template <typename... Ts>
 size_t TupleHash(const std::tuple<Ts...>& t) {
     return TupleHashImpl(t, std::index_sequence_for<Ts...>());
 }
@@ -191,7 +192,7 @@ size_t TupleHash(const std::tuple<Ts...>& t) {
 //
 // Example: std::unordered_set<NTuple<3, int>, TupleHasher> set;
 struct TupleHasher {
-    template<typename... Ts>
+    template <typename... Ts>
     size_t operator()(const std::tuple<Ts...>& t) const {
         return TupleHash(t);
     }

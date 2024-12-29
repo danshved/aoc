@@ -1,30 +1,16 @@
-#include <algorithm>
-#include <cmath>
 #include <iostream>
-#include <limits>
-#include <map>
-#include <optional>
-#include <queue>
-#include <ranges>
-#include <set>
 #include <string>
-#include <tuple>
-#include <unordered_map>
 #include <unordered_set>
-#include <utility>
 #include <vector>
 
 #include "collections.h"
 #include "grid.h"
-#include "numbers.h"
-#include "order.h"
 #include "parse.h"
 
 int main() {
-    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), '\n');
+    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), "\n");
     auto [size_i, size_j] = Sizes<2>(input);
-    auto [i, j] = FindOrDie<2>(input, '^');
-    PosDir guard = {{i, j}, kNorth};
+    PosDir guard = {FindOrDie<2>(input, '^'), kNorth};
 
     std::unordered_set<Coord> visited;
     while (true) {
