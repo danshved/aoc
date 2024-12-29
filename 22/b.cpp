@@ -1,22 +1,8 @@
-#include <algorithm>
-#include <cmath>
 #include <iostream>
-#include <limits>
-#include <map>
-#include <optional>
-#include <queue>
-#include <ranges>
-#include <set>
 #include <string>
-#include <tuple>
-#include <unordered_map>
 #include <unordered_set>
-#include <utility>
-#include <vector>
 
 #include "collections.h"
-#include "numbers.h"
-#include "order.h"
 #include "parse.h"
 
 const long long kMod = 16777216;
@@ -29,10 +15,8 @@ long long Step(long long x) {
 }
 
 int main() {
-    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), '\n');
     std::unordered_map<NTuple<4, int>, int, TupleHasher> counts;
-    
-    for (const auto& line : lines) {
+    for (const auto& line : Split(Trim(GetContents("input.txt")), "\n")) {
         long long x = std::stoll(line);
         NTuple<4, int> t;
         std::unordered_set<NTuple<4, int>, TupleHasher> seen;
