@@ -1,5 +1,7 @@
+#include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <concepts>
 #include <iostream>
 #include <optional>
 #include <tuple>
@@ -262,9 +264,9 @@ void TestDFS() {
             for (char v : graph[u]) {
                 assert(it != expected_edges.end());
                 auto [from, to, kind] = *it++;
-                assert (u == from);
-                assert (v == to);
-                assert (search.Look(v) == kind);
+                assert(u == from);
+                assert(v == to);
+                assert(search.Look(v) == kind);
             }
 
             leave[u] = time++;
@@ -333,7 +335,85 @@ void TestDijkstra() {
     assert(result == dist);
 }
 
+void TestManhattanSpiral() {
+    NestedVector<2, int> matrix = ConstVector(-1, 7, 7);
+    int count = 0;
+    for (Coord c : ManhattanSpiral({2, 3})) {
+        if (!InBounds(c, 7, 7)) {
+            continue;
+        }
+        matrix[c.i][c.j] = count++;
+        if (count >= 7 * 7) {
+            break;
+        }
+    };
+    // clang-format off
+    assert((matrix == NestedVector<2, int>{
+        {39, 30, 19,  9, 18, 29, 38},
+        {31, 20, 10,  3,  8, 17, 28},
+        {21, 11,  4,  0,  2,  7, 16},
+        {32, 22, 12,  1,  6, 15, 27},
+        {40, 33, 23,  5, 14, 26, 37},
+        {45, 41, 34, 13, 25, 36, 44},
+        {48, 46, 42, 24, 35, 43, 47},
+    }));
+    // clang-format on
+}
+
+void TestChessSpiral() {
+    NestedVector<2, int> matrix = ConstVector(-1, 7, 7);
+    int count = 0;
+    for (Coord c : ChessSpiral({2, 3})) {
+        if (!InBounds(c, 7, 7)) {
+            continue;
+        }
+        matrix[c.i][c.j] = count++;
+        if (count >= 7 * 7) {
+            break;
+        }
+    };
+    // clang-format off
+    assert((matrix == NestedVector<2, int>{
+        {31, 17, 16, 15, 14, 13, 30},
+        {32, 18,  5,  4,  3, 12, 29},
+        {33, 19,  6,  0,  2, 11, 28},
+        {34, 20,  7,  8,  1, 10, 27},
+        {35, 21, 22, 23, 24,  9, 26},
+        {36, 37, 38, 39, 40, 41, 25},
+        {42, 43, 44, 45, 46, 47, 48},
+    }));
+    // clang-format on
+}
+
+void TestSplit() {
+    assert((Split("", ".") == std::vector<std::string>{""}));
+    assert((Split("...", ".") == std::vector<std::string>{"", "", "", ""}));
+    assert((Split("abababa", "aba") == std::vector<std::string>{"", "b", ""}));
+    assert((Split(std::vector{1, 2, 3, 4, 2, 3, 5}, {2, 3}) ==
+            std::vector<std::vector<int>>{{1}, {4}, {5}}));
+    assert((Split(std::vector<std::string>{"abc", "", "", "def", "ghi", ""}, {""}) ==
+            std::vector<std::vector<std::string>>{{"abc"}, {}, {"def", "ghi"}, {}}));
+
+    assert((SplitN("a-b+c-d+e", "-", "+") == std::make_tuple("a", "b", "c-d+e")));
+    assert((SplitN("a-b+c-d+e", "+", "-") == std::make_tuple("a-b", "c", "d+e")));
+    assert((SplitN("") == std::make_tuple("")));
+    static_assert(std::is_same_v<decltype(SplitN("", "")), std::tuple<std::string, std::string>>);
+
+    assert((SplitN(std::vector{1, 2, 3, 4, 5}, std::vector{3}) ==
+            std::tuple<std::vector<int>, std::vector<int>>({1, 2}, {4, 5})));
+    assert((SplitN(std::vector<std::string>{"a", "b", "c", "d", "e"}, std::vector<std::string>{"c"}) ==
+            std::tuple<std::vector<std::string>, std::vector<std::string>>({"a", "b"}, {"d", "e"})));
+
+    assert((Split2(std::vector{1, 2, 3, 4, 5}, {3}) ==
+            std::tuple<std::vector<int>, std::vector<int>>({1, 2}, {4, 5})));
+    assert((Split2(std::vector<std::string>{"a", "b", "", "d", "e"}, {""}) ==
+            std::tuple<std::vector<std::string>, std::vector<std::string>>({"a", "b"}, {"d", "e"})));
+}
+
 int main() {
+    std::cerr << "Testing Split()..." << std::endl;
+    TestSplit();
+
     std::cerr << "Testing Gcd() and Euclid()..." << std::endl;
     for (int i = -100; i < 100; i++) {
         for (int j = -100; j < 100; j++) {
@@ -390,7 +470,7 @@ int main() {
     static_assert(std::is_same_v<NTuple<2, int>, std::tuple<int, int>>);
     static_assert(std::is_same_v<NTuple<3, char>, std::tuple<char, char, char>>);
 
-    std::cerr << "Testing Find..." << std::endl;
+    std::cerr << "Testing Find()..." << std::endl;
     assert(Find<2>(std::vector<std::string>{"abcdef", "gijklmnop"}, 'l') == std::make_tuple(1, 4));
     assert(Find<2>(std::vector<std::string>{"abcdef", "gijklmnop"}, 'z') == std::nullopt);
     assert(FindOrDie<2>(std::vector<std::string>{"abcdef", "gijklmnop"}, 'd') == std::make_tuple(0, 3));
@@ -402,15 +482,39 @@ int main() {
     static_assert(std::is_same_v<NestedVector<3, NestedVector<4, std::string>>,
                                  NestedVector<7, std::string>>);
 
-    std::cerr << "Testing ConstVector..." << std::endl;
+    std::cerr << "Testing ConstVector()..." << std::endl;
     assert((ConstVector(42, 2, 3) == NestedVector<2, int>{{42, 42, 42}, {42, 42, 42}}));
     assert(Sizes<3>(ConstVector('x', 3, 4, 5)) == std::make_tuple(3, 4, 5));
 
-    std::cerr << "Testing DFS..." << std::endl;
+    std::cerr << "Testing DFS()..." << std::endl;
     TestDFS();
 
-    std::cerr << "Testing Dijkstra..." << std::endl;
+    std::cerr << "Testing Dijkstra()..." << std::endl;
     TestDijkstra();
+
+    std::cerr << "Testing PathCO and PathCC..." << std::endl;
+    assert((std::ranges::equal(PathCO({1, 2}, {1, 2}), std::vector<Coord>{})));
+    assert((std::ranges::equal(PathCO({1, 2}, {3, 4}), std::vector<Coord>{{1, 2}, {2, 3}})));
+    assert((std::ranges::equal(PathCO({1, 2}, {3, 5}), std::vector<Coord>{{1, 2}, {2, 3}, {3, 4}})));
+    assert((std::ranges::equal(PathCC({1, 2}, {1, 2}), std::vector<Coord>{{1, 2}})));
+    assert((std::ranges::equal(PathCC({1, 2}, {3, 4}), std::vector<Coord>{{1, 2}, {2, 3}, {3, 4}})));
+    assert((std::ranges::equal(PathCC({1, 2}, {3, 5}), std::vector<Coord>{{1, 2}, {2, 3}, {3, 4}, {3, 5}})));
+
+    std::cerr << "Testing ManhattanSpiral..." << std::endl;
+    TestManhattanSpiral();
+
+    std::cerr << "Testing ManhattanCircle..." << std::endl;
+    assert((std::ranges::equal(ManhattanCircle({5, 5}, 0), std::vector<Coord>{{5, 5}})));
+    assert((std::ranges::equal(ManhattanCircle({5, 5}, 2), std::vector<Coord>{
+                                                               {7, 5}, {6, 6}, {5, 7}, {4, 6}, {3, 5}, {4, 4}, {5, 3}, {6, 4}})));
+
+    std::cerr << "Testing ChessSpiral..." << std::endl;
+    TestChessSpiral();
+
+    std::cerr << "Testing ChessCircle..." << std::endl;
+    assert((std::ranges::equal(ChessCircle({5, 5}, 0), std::vector<Coord>{{5, 5}})));
+    assert((std::ranges::equal(ChessCircle({5, 5}, 1), std::vector<Coord>{
+                                                           {6, 6}, {5, 6}, {4, 6}, {4, 5}, {4, 4}, {5, 4}, {6, 4}, {6, 5}})));
 
     std::cerr << "OK" << std::endl;
     return 0;
