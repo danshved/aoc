@@ -2,6 +2,7 @@
 #define __AOC_GRAPH_SEARCH_H__
 
 #include <algorithm>
+#include <optional>
 #include <queue>
 #include <unordered_map>
 #include <vector>

@@ -1,32 +1,18 @@
-#include <algorithm>
-#include <cmath>
 #include <iostream>
-#include <limits>
-#include <map>
-#include <optional>
-#include <queue>
-#include <ranges>
-#include <set>
 #include <string>
-#include <tuple>
 #include <unordered_map>
 #include <unordered_set>
-#include <utility>
 #include <vector>
 
-#include "collections.h"
 #include "graph_search.h"
-#include "numbers.h"
-#include "order.h"
 #include "parse.h"
 
 int main() {
-    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), '\n');
-    auto [top, bottom] = Split2(lines, std::string());
+    auto [top, bottom] = Split2(Split(Trim(GetContents("input.txt")), "\n"), {""});
 
     std::unordered_map<int, std::vector<int>> edges;
     for (const std::string& s : top) {
-        auto [l, r] = Split2(s, '|');
+        auto [l, r] = SplitN(s, "|");
         edges[std::stoi(l)].push_back(std::stoi(r));
     }
 
