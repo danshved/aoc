@@ -1,28 +1,16 @@
-#include <algorithm>
-#include <cmath>
 #include <iostream>
-#include <limits>
-#include <map>
-#include <optional>
-#include <ranges>
-#include <set>
 #include <string>
-#include <tuple>
 #include <unordered_map>
-#include <unordered_set>
-#include <utility>
 #include <vector>
 
 #include "collections.h"
 #include "graph_search.h"
 #include "grid.h"
-#include "numbers.h"
-#include "order.h"
 #include "parse.h"
 
 int main() {
-    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), '\n');
-    auto [size_i, size_j] = Sizes<2>(input);
+    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), "\n");
+    Box box = Sizes<2>(input);
     PosDir start = {FindOrDie<2>(input, 'S'), kEast};
     PosDir end = {FindOrDie<2>(input, 'E'), kNorth};
 
@@ -31,7 +19,7 @@ int main() {
             search.Look(u.RotateRight(), d + 1000);
             search.Look(u.RotateLeft(), d + 1000);
             PosDir v = u.Step();
-            if (InBounds(v.pos, size_i, size_j) && input[v.pos.i][v.pos.j] != '#') {
+            if (box.contains(v.pos) && input[v.pos.i][v.pos.j] != '#') {
                 search.Look(v, d + 1);
             }
         });
