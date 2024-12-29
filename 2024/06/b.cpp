@@ -85,6 +85,7 @@ int GetDistance(const State& u, const State& v) {
 int main() {
     input = Split(Trim(GetContents("input.txt")), "\n");
     box = Sizes<2>(input);
+    State start = {FindOrDie<2>(input, '^'), kNorth};
 
     // Forward depth-first search.
     DFS<State>(
@@ -136,10 +137,6 @@ int main() {
         });
     enter = std::move(res.enter_times);
     leave = std::move(res.exit_times);
-
-    // Find the guard.
-    auto [i, j] = FindOrDie<2>(input, '^');
-    State start = {{i, j}, kNorth};
 
     // Try every obstacle position.
     int answer = 0;
