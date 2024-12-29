@@ -198,18 +198,6 @@ BFSResult<Node, Hasher> BFSFrom(const Node& start, VisitFunc&& visit) {
         std::forward<VisitFunc>(visit));
 }
 
-template <typename Node, typename Hasher = std::hash<Node>,
-          std::ranges::input_range Range, typename VisitFunc>
-BFSResult<Node, Hasher> BFSFrom(const Range& range, VisitFunc&& visit) {
-    return BFS<Node, Hasher>(
-        [&range](auto& search) {
-            for (const Node& node : range) {
-                search.Look(node);
-            }
-        },
-        std::forward<VisitFunc>(visit));
-}
-
 // The result of Diskstra() is the set of vertices that have been reached.
 template <typename Node, typename Dist, typename Hasher = std::hash<Node>>
 using DijkstraResult = std::unordered_map<Node, Dist, Hasher>;
