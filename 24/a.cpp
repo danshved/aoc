@@ -1,24 +1,9 @@
-#include <algorithm>
-#include <cmath>
 #include <iostream>
-#include <limits>
-#include <map>
-#include <optional>
-#include <queue>
 #include <ranges>
-#include <set>
 #include <string>
-#include <tuple>
 #include <unordered_map>
-#include <unordered_set>
-#include <utility>
 #include <vector>
 
-#include "collections.h"
-#include "graph_search.h"
-#include "grid.h"
-#include "numbers.h"
-#include "order.h"
 #include "parse.h"
 
 struct Expr {
@@ -28,19 +13,18 @@ struct Expr {
 };
 
 int main() {
-    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), '\n');
-    auto [top, bottom] = Split2(lines, std::string());
+    auto [top, bottom] = Split2(Split(Trim(GetContents("input.txt")), "\n"), {""});
 
     std::unordered_map<std::string, int> values;
     for (const std::string& s : top) {
-        auto [l, r] = Split2(s, ':');
+        auto [l, r] = SplitN(s, ":");
         values[l] = std::stoi(Trim(r));
     }
 
     std::unordered_map<std::string, Expr> exprs;
     for (const std::string& s : bottom) {
-        auto ss = Split(s, ' ');
-        exprs[ss[4]] = Expr{ss[0], ss[1], ss[2]};
+        auto [left, op, right, output] = SplitN(s, " ", " ", " -> ");
+        exprs[output] = {left, op, right};
     }
 
     auto calc = [&](auto& self, const std::string& arg) -> int {

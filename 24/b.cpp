@@ -1,25 +1,10 @@
-#include <algorithm>
 #include <bitset>
-#include <cmath>
 #include <iostream>
-#include <limits>
-#include <map>
-#include <optional>
-#include <queue>
 #include <ranges>
-#include <set>
 #include <string>
-#include <tuple>
 #include <unordered_map>
-#include <unordered_set>
-#include <utility>
 #include <vector>
 
-#include "collections.h"
-#include "graph_search.h"
-#include "grid.h"
-#include "numbers.h"
-#include "order.h"
 #include "parse.h"
 
 struct Expr {
@@ -103,11 +88,10 @@ int GetHighest(const std::string& key) {
 }
 
 int main() {
-    std::vector<std::string> lines = Split(Trim(GetContents("input_fixed.txt")), '\n');
-    auto [top, bottom] = Split2(lines, std::string());
+    auto [_, bottom] = Split2(Split(Trim(GetContents("input_fixed.txt")), "\n"), {""});
     for (const std::string& s : bottom) {
-        auto ss = Split(s, ' ');
-        exprs[ss[4]] = Expr{ss[0], ss[1], ss[2]};
+        auto [left, op, right, output] = SplitN(s, " ", " ", " -> ");
+        exprs[output] = {left, op, right};
     }
 
     // Print which highest bit of input every wire depends on as a sanity check.
