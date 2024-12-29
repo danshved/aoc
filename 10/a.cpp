@@ -1,31 +1,18 @@
-#include <algorithm>
-#include <cmath>
 #include <iostream>
-#include <limits>
-#include <map>
-#include <optional>
-#include <ranges>
-#include <set>
 #include <string>
-#include <tuple>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
 #include <vector>
 
 #include "collections.h"
 #include "graph_search.h"
 #include "grid.h"
-#include "numbers.h"
-#include "order.h"
 #include "parse.h"
 
 int main() {
-    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), '\n');
-    auto [size_i, size_j] = Sizes<2>(input);
+    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), "\n");
+    Box box = Sizes<2>(input);
 
     int answer = 0;
-    for (Coord start : Bounds(size_i, size_j)) {
+    for (Coord start : box) {
         if (input[start.i][start.j] != '0') {
             continue;
         }
@@ -33,9 +20,8 @@ int main() {
             if (input[u.i][u.j] == '9') {
                 answer++;
             }
-            for (Coord dir : kDirs) {
-                Coord v = u + dir;
-                if (InBounds(v, size_i, size_j) && input[v.i][v.j] == input[u.i][u.j] + 1) {
+            for (Coord v : Adj4(u)) {
+                if (box.contains(v) && input[v.i][v.j] == input[u.i][u.j] + 1) {
                     search.Look(v);
                 }
             }
