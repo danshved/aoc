@@ -1,104 +1,72 @@
-#include <algorithm>
-#include <cmath>
 #include <iostream>
-#include <limits>
-#include <map>
-#include <optional>
-#include <set>
 #include <string>
-#include <tuple>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
 #include <vector>
 
-#include "collections.h"
-#include "numbers.h"
-#include "order.h"
+#include "grid.h"
 #include "parse.h"
 
-const int kSizeX = 101;
-const int kSizeY = 103;
+const Box kBox = {103, 101};
 
-struct Robot {
-    int x;
-    int y;
-    int vx;
-    int vy;
-};
-
-Robot ParseRobot(const std::string& s) {
-    auto [left, right] = Split2(s, ' ');
-    auto [s1, s2] = Split2(left.substr(2), ',');
-    auto [s3, s4] = Split2(right.substr(2), ',');
-    return Robot{std::stoi(s1), std::stoi(s2), std::stoi(s3), std::stoi(s4)};
-}
-
-int Clamp(int c, int limit) {
-    c %= limit;
-    c += limit;
-    return c % limit;
+PosDir ParseRobot(const std::string& s) {
+    auto [_, pj, pi, vj, vi] = SplitN(s, "p=", ",", " v=", ",");
+    return {{std::stoi(pi), std::stoi(pj)}, {std::stoi(vi), std::stoi(vj)}};
 }
 
 template<typename S>
-void PrintRobots(const std::vector<Robot> robots, S& out) {
-    std::vector<std::string> image(kSizeY, std::string(kSizeX, '.'));
-    for (const Robot& r : robots) {
-        image[r.y][r.x] = '#';
+void PrintRobots(const std::vector<PosDir>& robots, S& out) {
+    std::vector<std::string> image(kBox.size_i, std::string(kBox.size_j, '.'));
+    for (const PosDir& r : robots) {
+        image[r.pos.i][r.pos.j] = '#';
     }
-    for (const std::string& s : image) {
-        out << s << std::endl;
-    }
-    out << std::endl;
+    out << FormatVector(image, "\n") << std::endl;
 }
 
-int VarX(const std::vector<Robot>& robots) {
+int VarI(const std::vector<PosDir>& robots) {
     int sum = 0, sum_sq = 0;
-    for (const Robot& r : robots) {
-        sum += r.x;
-        sum_sq += r.x * r.x;
+    for (const PosDir& r : robots) {
+        sum += r.pos.i;
+        sum_sq += r.pos.i * r.pos.i;
     }
     return sum_sq * robots.size() - sum * sum;
 }
 
-int VarY(const std::vector<Robot>& robots) {
+int VarJ(const std::vector<PosDir>& robots) {
     int sum = 0, sum_sq = 0;
-    for (const Robot& r : robots) {
-        sum += r.y;
-        sum_sq += r.y * r.y;
+    for (const PosDir& r : robots) {
+        sum += r.pos.j;
+        sum_sq += r.pos.j * r.pos.j;
     }
     return sum_sq * robots.size() - sum * sum;
 }
+
 
 int main() {
-    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), '\n');
-    std::vector<Robot> robots;
-    for (const std::string& line : lines) {
+    std::vector<PosDir> robots;
+    for (const std::string& line : Split(Trim(GetContents("input.txt")), "\n")) {
         robots.push_back(ParseRobot(line));
     }
 
     std::ofstream out("output.txt");
     int t;
-    for (t = 0; t < kSizeX * kSizeY; t++) {
-        int var_x = VarX(robots);
-        if (var_x < 100000000) {
-            out << "Low X variance: " << t << " " << var_x << std::endl;
+    for (t = 0; t < kBox.size_i * kBox.size_j; t++) {
+        int var_i = VarI(robots);
+        if (var_i < 100000000) {
+            out << "Low I variance: " << t << " " << var_i << std::endl;
             PrintRobots(robots, out);
         }
 
-        int var_y = VarY(robots);
-        if (var_y < 100000000) {
-            out << "Low Y variance: " << t << " " << var_y << std::endl;
+        int var_j = VarJ(robots);
+        if (var_j < 100000000) {
+            out << "Low J variance: " << t << " " << var_j << std::endl;
             PrintRobots(robots, out);
         }
 
-        if (var_x < 100000000 && var_y < 100000000) {
+        if (var_i < 100000000 && var_j < 100000000) {
             break;
         }
 
-        for (Robot& robot : robots) {
-            robot.x = Clamp(robot.x + robot.vx, kSizeX);
-            robot.y = Clamp(robot.y + robot.vy, kSizeY);
+        for (PosDir& robot : robots) {
+            robot.pos = kBox.Wrap(robot.pos + robot.dir);
         }
     }
 

@@ -1,64 +1,36 @@
-#include <algorithm>
-#include <cmath>
 #include <iostream>
-#include <limits>
-#include <map>
-#include <optional>
-#include <set>
 #include <string>
-#include <tuple>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
 #include <vector>
 
-#include "collections.h"
-#include "numbers.h"
-#include "order.h"
+#include "grid.h"
 #include "parse.h"
 
 const int kMaxT = 100;
-const int kSizeX = 101;
-const int kSizeY = 103;
-
-struct Robot {
-    int x;
-    int y;
-    int vx;
-    int vy;
+const int kI = 103, kJ = 101;
+const Box kBox = {0, 0, kI, kJ};
+const Box kBoxes[4] = {
+    {0, 0, kI / 2, kJ / 2},
+    {0, kJ - kJ / 2, kI / 2, kJ / 2},
+    {kI - kI / 2, 0, kI / 2, kJ / 2},
+    {kI - kI / 2, kJ - kJ / 2, kI / 2, kJ / 2},
 };
 
-Robot ParseRobot(const std::string& s) {
-    auto [left, right] = Split2(s, ' ');
-    auto [s1, s2] = Split2(left.substr(2), ',');
-    auto [s3, s4] = Split2(right.substr(2), ',');
-    return Robot{std::stoi(s1), std::stoi(s2), std::stoi(s3), std::stoi(s4)};
-}
-
-int Clamp(int c, int limit) {
-    c %= limit;
-    c += limit;
-    return c % limit;
+PosDir ParseRobot(const std::string& s) {
+    auto [_, pj, pi, vj, vi] = SplitN(s, "p=", ",", " v=", ",");
+    return {{std::stoi(pi), std::stoi(pj)}, {std::stoi(vi), std::stoi(vj)}};
 }
 
 int main() {
-    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), '\n');
-
-    int ll = 0, lh = 0, hl = 0, hh = 0;
-    for (const std::string& line : lines) {
-        Robot robot = ParseRobot(line);
-        robot.x = Clamp(robot.x + robot.vx * kMaxT, kSizeX);
-        robot.y = Clamp(robot.y + robot.vy * kMaxT, kSizeY);
-
-        if (robot.x < kSizeX / 2) {
-            if (robot.y < kSizeY / 2) ll++;
-            else if (robot.y > kSizeY / 2) lh++;
-        } else if (robot.x > kSizeX / 2) {
-            if (robot.y < kSizeY / 2) hl++;
-            else if (robot.y > kSizeY / 2) hh++;
+    int c[4] = {0, 0, 0, 0};
+    for (const std::string& line : Split(Trim(GetContents("input.txt")), "\n")) {
+        PosDir robot = ParseRobot(line);
+        Coord pos = kBox.Wrap(robot.pos + robot.dir * kMaxT);
+        for (int i = 0; i < 4; i++) {
+            if (kBoxes[i].contains(pos)) {
+                c[i]++;
+            }
         }
     }
-
-    std::cout << ll * lh * hl * hh;
+    std::cout << c[0] * c[1] * c[2] * c[3] << std::endl;
     return 0;
 }
