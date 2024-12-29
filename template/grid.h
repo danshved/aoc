@@ -128,7 +128,16 @@ struct Box {
 
     Box(int the_size_i, int the_size_j) : Box(0, 0, the_size_i, the_size_j) {}
 
-    Box(const std::tuple<int, int>& t) : Box(std::get<0>(t), std::get<1>(t)) {};
+    Box(const std::tuple<int, int>& t) : Box(std::get<0>(t), std::get<1>(t)) {}
+
+    Box() : Box(0, 0, 0, 0) {}
+
+    Box(const Box&) = default;
+    Box& operator=(const Box&) = default;
+
+    Box& operator=(const std::tuple<int, int>& t) {
+        return *this = Box(t);
+    }
 
     bool contains(const Coord& c) {
         return c.i >= min_i && c.i < min_i + size_i &&

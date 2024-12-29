@@ -5,9 +5,9 @@
 #include <vector>
 
 #include "collections.h"
+#include "graph_search.h"
 #include "grid.h"
 #include "parse.h"
-#include "graph_search.h"
 
 // Possible states (position + direction) of the guard. There are 4 legal states
 // within each cell that is not '#'. There is one additional legal state
@@ -16,7 +16,7 @@ using State = PosDir;
 const State kOutside = {{0, 0}, {0, 0}};
 
 std::vector<std::string> input;
-int size_i, size_j;
+Box box;
 
 // Each legal state has exactly one next state: the one to which the guard will
 // transition according to the rules. For convenience, if the guard is outside
@@ -29,7 +29,7 @@ State Next(const State& s) {
     }
 
     State next = s.Step();
-    return (!InBounds(next.pos, size_i, size_j))    ? kOutside
+    return (!box.contains(next.pos))                ? kOutside
            : (input[next.pos.i][next.pos.j] == '#') ? s.RotateRight()
                                                     : next;
 }
@@ -84,16 +84,16 @@ int GetDistance(const State& u, const State& v) {
 
 int main() {
     input = Split(Trim(GetContents("input.txt")), "\n");
-    std::tie(size_i, size_j) = Sizes<2>(input);
+    box = Sizes<2>(input);
 
     // Forward depth-first search.
     DFS<State>(
         [](auto& search) {
-            for (Coord pos : Bounds(size_i, size_j)) {
+            for (Coord pos : box) {
                 if (input[pos.i][pos.j] == '#') {
                     continue;
                 }
-                for (Coord dir : kDirs) {
+                for (Coord dir : Adj4({0, 0})) {
                     search.Look({pos, dir});
                 }
             }
@@ -143,7 +143,7 @@ int main() {
 
     // Try every obstacle position.
     int answer = 0;
-    for (Coord obs : Bounds(size_i, size_j)) {
+    for (Coord obs : box) {
         if (input[obs.i][obs.j] != '.') {
             continue;
         }
@@ -155,7 +155,7 @@ int main() {
             // tries to enter into one of the 4 states in the obstacle cell.
             State hit = kOutside;
             int dist = kInf;
-            for (Coord dir : kDirs) {
+            for (Coord dir : Adj4({0, 0})) {
                 State v = {obs, dir};
                 int v_dist = GetDistance(guard, v);
                 if (v_dist < dist) {
