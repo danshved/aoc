@@ -1,24 +1,19 @@
 #include <iostream>
-#include <fstream>
 #include <vector>
-#include <algorithm>
+
+#include "parse.h"
 
 int main() {
     std::vector<int> xs, ys;
-
-    std::ifstream in;
-    in.open("input.txt");
-    for (int i = 0; i < 1000; ++i) {
-        int x, y;
-        in >> x >> y;
-        xs.push_back(x);
-        ys.push_back(y);
+    for (const std::string line : Split(Trim(GetContents("input.txt")), "\n")) {
+        auto [a, b] = SplitN(line, " ");
+        xs.push_back(std::stoi(a));
+        ys.push_back(std::stoi(b));
     }
-    in.close();
 
+    int answer = 0;
     std::sort(xs.begin(), xs.end());
     std::sort(ys.begin(), ys.end());
-    int answer = 0;
     auto x = xs.begin();
     auto y = ys.begin();
     while (x != xs.end() && y != ys.end()) {
@@ -36,4 +31,5 @@ int main() {
     }
 
     std::cout << answer << std::endl;
+    return 0;
 }
