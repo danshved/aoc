@@ -339,7 +339,7 @@ void TestManhattanSpiral() {
     NestedVector<2, int> matrix = ConstVector(-1, 7, 7);
     int count = 0;
     for (Coord c : ManhattanSpiral({2, 3})) {
-        if (!InBounds(c, 7, 7)) {
+        if (!Box(7, 7).contains(c)) {
             continue;
         }
         matrix[c.i][c.j] = count++;
@@ -364,7 +364,7 @@ void TestChessSpiral() {
     NestedVector<2, int> matrix = ConstVector(-1, 7, 7);
     int count = 0;
     for (Coord c : ChessSpiral({2, 3})) {
-        if (!InBounds(c, 7, 7)) {
+        if (!Box(7, 7).contains(c)) {
             continue;
         }
         matrix[c.i][c.j] = count++;
@@ -414,20 +414,30 @@ int main() {
     std::cerr << "Testing Split()..." << std::endl;
     TestSplit();
 
-    std::cerr << "Testing Gcd() and Euclid()..." << std::endl;
+    std::cerr << "Testing Gcd(), Lcm(), and Euclid()..." << std::endl;
     for (int i = -100; i < 100; i++) {
         for (int j = -100; j < 100; j++) {
-            int d = Gcd(i, j), p, q;
+            int d = Gcd(i, j), m = Lcm(i, j), p, q;
             std::tie(p, q) = Euclid(i, j);
             assert(p * i + q * j == d);
             if (i != 0 || j != 0) {
                 assert(d > 0);
                 assert(i % d == 0);
                 assert(j % d == 0);
+
+                assert(m >= 0);
+                assert(abs(i * j) == m * d);
+            }
+            if (i != 0) {
+                assert (m % i == 0);
+            }
+            if (j != 0) {
+                assert (m % j == 0);
             }
         }
     }
     assert(Gcd(0, 0) == 0);
+    assert(Lcm(0, 0) == 0);
 
     std::cerr << "Testing Inverse()..." << std::endl;
     {

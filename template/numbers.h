@@ -9,14 +9,14 @@
 #include <vector>
 
 // Taking a number modulo another
-template<typename T>
+template <typename T>
 T SafeMod(T a, T m) {
-    assert (m > 0);
+    assert(m > 0);
     return ((a % m) + m) % m;
 }
 
 // Greatest common divisor.
-template<typename T>
+template <typename T>
 T Gcd(T a, T b) {
     if (a < 0) a = -a;
     if (b < 0) b = -b;
@@ -27,16 +27,24 @@ T Gcd(T a, T b) {
     return a;
 }
 
+// Least common multiple
+template <typename T>
+T Lcm(T a, T b) {
+    if (a < 0) a = -a;
+    if (b < 0) b = -b;
+    return (a == 0 && b == 0) ? 0 : (a / Gcd(a, b) * b);
+}
+
 // Extended Euclid's algorithm.
 // Returns such (x, y) that a * x + b * y = Gcd(a, b).
-template<typename T>
+template <typename T>
 std::pair<T, T> Euclid(T a, T b) {
     T xa = 1, ya = 0, xb = 0, yb = 1;
     if (a < 0) {
-       std::tie(a, xa, ya) = std::make_tuple(-a, -xa, -ya);
+        std::tie(a, xa, ya) = std::make_tuple(-a, -xa, -ya);
     }
     if (b < 0) {
-       std::tie(b, xb, yb) = std::make_tuple(-b, -xb, -yb);
+        std::tie(b, xb, yb) = std::make_tuple(-b, -xb, -yb);
     }
     while (b != 0) {
         T k = a / b;
@@ -53,7 +61,7 @@ std::pair<T, T> Euclid(T a, T b) {
 // Inverse (x, m) * x == 1  (mod m).
 //
 // Dies if x and m are not coprime.
-template<typename T>
+template <typename T>
 T Inverse(T x, T m) {
     if (m < 0) {
         m = -m;
@@ -61,7 +69,7 @@ T Inverse(T x, T m) {
 
     T y, n;
     std::tie(y, n) = Euclid(x, m);
-    assert (x * y + m * n == 1);
+    assert(x * y + m * n == 1);
     if (m != 0) {
         y %= m;
         if (y < 0) {
@@ -75,7 +83,7 @@ T Inverse(T x, T m) {
 
 // Generates all primes that are less than bound, in ascending order.
 // Time: O(bound * log log bound).
-template<typename T>
+template <typename T>
 std::vector<T> GetPrimes(T bound) {
     std::vector<bool> has_divisor(bound, false);
     std::vector<T> result;
@@ -94,7 +102,7 @@ std::vector<T> GetPrimes(T bound) {
 }
 
 // Divide and round towards -infinity.
-template<typename T>
+template <typename T>
 T FloorDiv(T a, T b) {
     if (b < 0) {
         a = -a;
@@ -104,7 +112,7 @@ T FloorDiv(T a, T b) {
 }
 
 // Divide and round towards +infinity.
-template<typename T>
+template <typename T>
 T CeilDiv(T a, T b) {
     if (b < 0) {
         a = -a;
@@ -114,13 +122,13 @@ T CeilDiv(T a, T b) {
 }
 
 // Divide and rounds towards 0.
-template<typename T>
+template <typename T>
 T TruncDiv(T a, T b) {
     return a / b;
 }
 
 // Divide and round to nearest integer, rounding half-integers away from 0.
-template<typename T>
+template <typename T>
 T RoundDiv(T a, T b) {
     if (b < 0) {
         a = -a;
@@ -130,22 +138,23 @@ T RoundDiv(T a, T b) {
 }
 
 // Rational numbers. T is the type of numerator and denominator.
-template<typename T>
+template <typename T>
 class Rational {
-public:
+   public:
     Rational() : n_(0), d_(1) {}
 
-    template<class U>
-    Rational(U x) requires std::integral<U> : n_(static_cast<T>(x)), d_(1) {}
+    template <class U>
+    Rational(U x)
+        requires std::integral<U>
+        : n_(static_cast<T>(x)), d_(1) {}
 
     Rational(const Rational&) = default;
     Rational& operator=(const Rational&) = default;
     Rational(Rational&&) = default;
     Rational& operator=(Rational&&) = default;
 
-    template<typename U>
-    explicit Rational(const Rational<U>& other) :
-        n_(static_cast<T>(other.Num())), d_(static_cast<T>(other.Denom())) {}
+    template <typename U>
+    explicit Rational(const Rational<U>& other) : n_(static_cast<T>(other.Num())), d_(static_cast<T>(other.Denom())) {}
 
     T Num() const {
         return n_;
@@ -167,7 +176,6 @@ public:
         return out << r.n_ << '/' << r.d_;
     }
 
-
     // Equality comparison.
 
     bool operator==(const Rational& other) const {
@@ -175,23 +183,26 @@ public:
         // If we got a bad rational with zero denominator, probably due to
         // arithmetic overflow, complain now before the error propagates
         // further.
-        assert (d_ != 0 && other.d_ != 0);
+        assert(d_ != 0 && other.d_ != 0);
         return n_ * other.d_ == d_ * other.n_;
     }
 
-    template<typename U>
-    bool operator==(U other) const requires std::integral<U> {
+    template <typename U>
+    bool operator==(U other) const
+        requires std::integral<U>
+    {
         return *this == Rational(other);
     }
 
-    template<typename U>
-    bool operator==(U other) const requires std::floating_point<U> {
+    template <typename U>
+    bool operator==(U other) const
+        requires std::floating_point<U>
+    {
         return static_cast<U>(*this) == other;
     }
 
-    template<typename U>
+    template <typename U>
     bool operator==(U) const = delete;
-
 
     // Order comparison.
 
@@ -200,23 +211,26 @@ public:
 
         // This is a "terminating" operation (doesn't return Rational), so we
         // check now if Rational computations produced an invalid value.
-        assert (x.d_ != 0);
+        assert(x.d_ != 0);
         return (x.d_ > 0) ? (x.n_ <=> 0) : (0 <=> x.n_);
     }
 
-    template<typename U>
-    std::strong_ordering operator<=>(U other) const requires std::integral<U> {
+    template <typename U>
+    std::strong_ordering operator<=>(U other) const
+        requires std::integral<U>
+    {
         return *this <=> Rational(other);
     }
 
-    template<typename U>
-    auto operator<=>(U other) const requires std::floating_point<U> {
+    template <typename U>
+    auto operator<=>(U other) const
+        requires std::floating_point<U>
+    {
         return static_cast<U>(*this) <=> other;
     }
 
-    template<typename U>
+    template <typename U>
     std::strong_ordering operator<=>(U) const = delete;
-
 
     // Addition.
 
@@ -224,32 +238,39 @@ public:
         return Rational(n_ * other.d_ + other.n_ * d_, d_ * other.d_).Normal();
     }
 
-    template<typename U>
-    Rational operator+(U other) const requires std::integral<U> {
+    template <typename U>
+    Rational operator+(U other) const
+        requires std::integral<U>
+    {
         return *this + Rational(other);
     }
 
-    template<typename U>
-    U operator+(U other) const requires std::floating_point<U> {
+    template <typename U>
+    U operator+(U other) const
+        requires std::floating_point<U>
+    {
         return static_cast<U>(*this) + other;
     }
 
-    template<typename U>
+    template <typename U>
     Rational operator+(U) const = delete;
 
-    template<typename U>
-    friend Rational operator+(U other, const Rational& r) requires std::integral<U> {
+    template <typename U>
+    friend Rational operator+(U other, const Rational& r)
+        requires std::integral<U>
+    {
         return Rational(other) + r;
     }
 
-    template<typename U>
-    friend U operator+(U other, const Rational& r) requires std::floating_point<U> {
+    template <typename U>
+    friend U operator+(U other, const Rational& r)
+        requires std::floating_point<U>
+    {
         return other + static_cast<U>(r);
     }
 
-    template<typename U>
+    template <typename U>
     friend Rational operator+(U, const Rational&) = delete;
-
 
     // Unary minus.
 
@@ -257,39 +278,45 @@ public:
         return Rational(-n_, d_);
     }
 
-
     // Subtraction.
 
     Rational operator-(const Rational& other) const {
         return Rational(n_ * other.d_ - other.n_ * d_, d_ * other.d_).Normal();
     }
 
-    template<typename U>
-    Rational operator-(U other) const requires std::integral<U> {
+    template <typename U>
+    Rational operator-(U other) const
+        requires std::integral<U>
+    {
         return *this - Rational(other);
     }
 
-    template<typename U>
-    U operator-(U other) const requires std::floating_point<U> {
+    template <typename U>
+    U operator-(U other) const
+        requires std::floating_point<U>
+    {
         return static_cast<U>(*this) - other;
     }
 
-    template<typename U>
+    template <typename U>
     Rational operator-(U) const = delete;
 
-    template<typename U>
-    friend Rational operator-(U other, const Rational& r) requires std::integral<U> {
+    template <typename U>
+    friend Rational operator-(U other, const Rational& r)
+        requires std::integral<U>
+    {
         return Rational(other) - r;
     }
 
-    template<typename U>
-    friend U operator-(U other, const Rational& r) requires std::floating_point<U> {
+    template <typename U>
+    friend U operator-(U other, const Rational& r)
+        requires std::floating_point<U>
+    {
         return other - static_cast<U>(r);
     }
 
-    template<typename U>
+    template <typename U>
     friend Rational operator-(U, const Rational&) = delete;
-
 
     // Multiplication.
 
@@ -297,66 +324,80 @@ public:
         return Rational(n_ * other.n_, d_ * other.d_).Normal();
     }
 
-    template<typename U>
-    Rational operator*(U other) const requires std::integral<U> {
+    template <typename U>
+    Rational operator*(U other) const
+        requires std::integral<U>
+    {
         return *this * Rational(other);
     }
 
-    template<typename U>
-    U operator*(U other) const requires std::floating_point<U> {
+    template <typename U>
+    U operator*(U other) const
+        requires std::floating_point<U>
+    {
         return static_cast<U>(*this) * other;
     }
 
-    template<typename U>
+    template <typename U>
     Rational operator*(U) const = delete;
 
-    template<typename U>
-    friend Rational operator*(U other, const Rational& r) requires std::integral<U> {
+    template <typename U>
+    friend Rational operator*(U other, const Rational& r)
+        requires std::integral<U>
+    {
         return Rational(other) * r;
     }
 
-    template<typename U>
-    friend U operator*(U other, const Rational& r) requires std::floating_point<U> {
+    template <typename U>
+    friend U operator*(U other, const Rational& r)
+        requires std::floating_point<U>
+    {
         return other * static_cast<U>(r);
     }
 
-    template<typename U>
+    template <typename U>
     friend Rational operator*(U, const Rational&) = delete;
-
 
     // Division.
 
     Rational operator/(const Rational& other) const {
-        assert (other.n_ != 0);
+        assert(other.n_ != 0);
         return Rational(n_ * other.d_, other.n_ * d_).Normal();
     }
 
-    template<typename U>
-    Rational operator/(U other) const requires std::integral<U> {
+    template <typename U>
+    Rational operator/(U other) const
+        requires std::integral<U>
+    {
         return *this / Rational(other);
     }
 
-    template<typename U>
-    U operator/(U other) const requires std::floating_point<U> {
+    template <typename U>
+    U operator/(U other) const
+        requires std::floating_point<U>
+    {
         return static_cast<U>(*this) / other;
     }
 
     template <typename U>
     Rational operator/(U) const = delete;
 
-    template<typename U>
-    friend Rational operator/(U other, const Rational& r) requires std::integral<U> {
+    template <typename U>
+    friend Rational operator/(U other, const Rational& r)
+        requires std::integral<U>
+    {
         return Rational(other) / r;
     }
 
-    template<typename U>
-    friend U operator/(U other, const Rational& r) requires std::floating_point<U> {
+    template <typename U>
+    friend U operator/(U other, const Rational& r)
+        requires std::floating_point<U>
+    {
         return other / static_cast<U>(r);
     }
 
     template <typename U>
     friend Rational operator/(U, const Rational&) = delete;
-
 
     // Compound assignment by sum.
 
@@ -365,14 +406,15 @@ public:
         return *this;
     }
 
-    template<typename U>
-    Rational& operator+=(U other) requires std::integral<U> {
+    template <typename U>
+    Rational& operator+=(U other)
+        requires std::integral<U>
+    {
         return (*this += Rational(other));
     }
 
-    template<typename U>
+    template <typename U>
     Rational& operator+=(U) = delete;
-
 
     // Compound assignment by difference.
 
@@ -381,14 +423,15 @@ public:
         return *this;
     }
 
-    template<typename U>
-    Rational& operator-=(U other) requires std::integral<U> {
+    template <typename U>
+    Rational& operator-=(U other)
+        requires std::integral<U>
+    {
         return (*this -= Rational(other));
     }
 
-    template<typename U>
+    template <typename U>
     Rational& operator-=(U) = delete;
-
 
     // Compound assignment by product.
 
@@ -397,14 +440,15 @@ public:
         return *this;
     }
 
-    template<typename U>
-    Rational& operator*=(U other) requires std::integral<U> {
+    template <typename U>
+    Rational& operator*=(U other)
+        requires std::integral<U>
+    {
         return (*this *= Rational(other));
     }
 
-    template<typename U>
+    template <typename U>
     Rational& operator*=(U) = delete;
-
 
     // Compound assignment by quotient.
 
@@ -413,27 +457,31 @@ public:
         return *this;
     }
 
-    template<typename U>
-    Rational& operator/=(U other) requires std::integral<U> {
+    template <typename U>
+    Rational& operator/=(U other)
+        requires std::integral<U>
+    {
         return (*this /= Rational(other));
     }
 
-    template<typename U>
+    template <typename U>
     Rational& operator/=(U) = delete;
-
 
     // Casts to numeric types.
 
-    template<class U>
-    operator U() const requires std::integral<U>{
+    template <class U>
+    operator U() const
+        requires std::integral<U>
+    {
         return static_cast<U>(n_ / d_);
     }
 
-    template<class U>
-    operator U() const requires std::floating_point<U> {
+    template <class U>
+    operator U() const
+        requires std::floating_point<U>
+    {
         return static_cast<U>(n_) / static_cast<U>(d_);
     }
-
 
     // Rounding.
 
@@ -457,34 +505,34 @@ public:
         return Rational(std::abs(n_), std::abs(d_));
     }
 
-private:
+   private:
     Rational(T num, T denom) : n_(num), d_(denom) {}
 
     T n_;
     T d_;
 };
 
-template<typename T>
+template <typename T>
 Rational<T> floor(const Rational<T>& r) {
     return r.Floor();
 }
 
-template<typename T>
+template <typename T>
 Rational<T> ceil(const Rational<T>& r) {
     return r.Ceil();
 }
 
-template<typename T>
+template <typename T>
 Rational<T> trunc(const Rational<T>& r) {
     return r.Trunc();
 }
 
-template<typename T>
+template <typename T>
 Rational<T> round(const Rational<T>& r) {
     return r.Round();
 }
 
-template<typename T>
+template <typename T>
 Rational<T> abs(const Rational<T>& r) {
     return r.Abs();
 }
