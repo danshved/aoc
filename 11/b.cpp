@@ -1,25 +1,12 @@
-#include <algorithm>
-#include <cmath>
 #include <iostream>
-#include <limits>
-#include <map>
-#include <optional>
-#include <set>
-#include <string>
-#include <tuple>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
 #include <vector>
 
-#include "numbers.h"
-#include "order.h"
 #include "parse.h"
 
 std::unordered_map<long long, long long> Evolve(
-    const std::unordered_map<long long, long long> &cs) {
+    const std::unordered_map<long long, long long>& cs) {
     std::unordered_map<long long, long long> ds;
-    for (const auto &[x, c] : cs) {
+    for (const auto& [x, c] : cs) {
         if (x == 0) {
             ds[1] += c;
         } else {
@@ -45,15 +32,13 @@ int main() {
     }
 
     for (int i = 0; i < 75; i++) {
-        std::cout << i << std::endl;
         cs = Evolve(cs);
     }
 
     long long answer = 0;
-    for (const auto &[x, c] : cs) {
+    for (const auto &[_, c] : cs) {
         answer += c;
     }
-
     std::cout << answer << std::endl;
     return 0;
 }

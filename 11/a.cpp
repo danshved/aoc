@@ -1,19 +1,6 @@
-#include <algorithm>
-#include <cmath>
 #include <iostream>
-#include <limits>
-#include <map>
-#include <optional>
-#include <set>
-#include <string>
-#include <tuple>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
 #include <vector>
 
-#include "numbers.h"
-#include "order.h"
 #include "parse.h"
 
 std::vector<long long> Evolve(const std::vector<long long>& xs) {
@@ -39,10 +26,8 @@ int main() {
     std::vector<long long> xs = ParseVector<long long>(input);
 
     for (int i = 0; i < 25; i++) {
-        std::cout << i << std::endl;
         xs = Evolve(xs);
     }
-
     std::cout << xs.size() << std::endl;
     return 0;
 }
