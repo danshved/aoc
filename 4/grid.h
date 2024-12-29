@@ -109,19 +109,41 @@ struct std::hash<Coord> {
 };
 
 const Coord kNorth = {-1, 0}, kSouth = {1, 0}, kWest = {0, -1}, kEast = {0, 1};
-
 const std::unordered_map<char, Coord> kDirArrows =
     {{'^', kNorth}, {'v', kSouth}, {'<', kWest}, {'>', kEast}};
 
-bool InBounds(const Coord& c, int size_i, int size_j) {
-    return c.i >= 0 && c.i < size_i && c.j >= 0 && c.j < size_j;
-}
-
-// Helper object that presents the grid as a range:
-//
-// for (Coord c : Bounds(size_i, size_j)) {...}
-class Bounds {
+// A box [min_i, min_i + size_i) x [min_j, min_j + size_j).
+struct Box {
    public:
+    int min_i;
+    int min_j;
+    int size_i;
+    int size_j;
+
+    Box(int the_min_i, int the_min_j, int the_size_i, int the_size_j)
+        : min_i(the_min_i), min_j(the_min_j), size_i(the_size_i), size_j(the_size_j) {
+        assert(size_i >= 0);
+        assert(size_j >= 0);
+    }
+
+    Box(int the_size_i, int the_size_j) : Box(0, 0, the_size_i, the_size_j) {}
+
+    Box(const std::tuple<int, int>& t) : Box(std::get<0>(t), std::get<1>(t)) {}
+
+    Box() : Box(0, 0, 0, 0) {}
+
+    Box(const Box&) = default;
+    Box& operator=(const Box&) = default;
+
+    Box& operator=(const std::tuple<int, int>& t) {
+        return *this = Box(t);
+    }
+
+    bool contains(const Coord& c) {
+        return c.i >= min_i && c.i < min_i + size_i &&
+               c.j >= min_j && c.j < min_j + size_j;
+    }
+
     class Iterator {
        public:
         using difference_type = std::ptrdiff_t;
@@ -129,18 +151,19 @@ class Bounds {
 
         Iterator() {}
 
-        Iterator(const Coord& cur, int size_j) : cur_(cur), size_j_(size_j) {}
+        Iterator(const Coord& delta, const Coord& start, int size_j)
+            : delta_(delta), start_(start), size_j_(size_j) {}
 
         Coord operator*() const {
-            return cur_;
+            return start_ + delta_;
         }
 
         Iterator& operator++() {
             if (size_j_ > 0) {
-                cur_.j++;
-                while (cur_.j >= size_j_) {
-                    cur_.j -= size_j_;
-                    cur_.i++;
+                delta_.j++;
+                while (delta_.j >= size_j_) {
+                    delta_.j -= size_j_;
+                    delta_.i++;
                 }
             }
             return *this;
@@ -153,38 +176,32 @@ class Bounds {
         }
 
         bool operator==(const Iterator& other) const {
+            if (start_ != other.start_) {
+                return false;
+            }
             if (size_j_ != other.size_j_) {
                 return false;
             }
             if (size_j_ <= 0) {
                 return true;
             }
-            return cur_ == other.cur_;
+            return delta_ == other.delta_;
         }
 
        private:
-        Coord cur_;
+        Coord delta_;
+        Coord start_;
         int size_j_ = 0;
     };
-
     using iterator = Iterator;
 
-    Bounds(int size_i, int size_j) : size_i_(size_i), size_j_(size_j) {
-        assert(size_i >= 0);
-        assert(size_j >= 0);
-    }
-
     Iterator begin() const {
-        return Iterator(Coord{0, 0}, size_j_);
+        return Iterator({0, 0}, {min_i, min_j}, size_j);
     }
 
     Iterator end() const {
-        return Iterator(Coord{size_i_, 0}, size_j_);
+        return Iterator({size_i, 0}, {min_i, min_j}, size_j);
     }
-
-   private:
-    int size_i_;
-    int size_j_;
 };
 
 // Advances the point along the path of non-decreasing Manhattan norm,
