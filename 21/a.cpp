@@ -1,30 +1,13 @@
-#include <algorithm>
-#include <cmath>
 #include <iostream>
 #include <limits>
-#include <map>
-#include <optional>
-#include <queue>
 #include <ranges>
-#include <set>
 #include <string>
-#include <tuple>
 #include <unordered_map>
-#include <unordered_set>
-#include <utility>
 #include <vector>
 
 #include "collections.h"
-#include "numbers.h"
-#include "order.h"
+#include "grid.h"
 #include "parse.h"
-
-struct Coord {
-    int i;
-    int j;
-
-    bool operator==(const Coord&) const = default;
-};
 
 using Keypad = std::unordered_map<char, Coord>;
 
@@ -75,17 +58,12 @@ std::vector<std::string> Get(const std::vector<std::string>& ss, const Keypad& k
 }
 
 int main() {
-    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), '\n');
-
     int answer = 0;
-    for (const std::string& s : lines) {
+    for (const std::string& s : Split(Trim(GetContents("input.txt")), "\n")) {
         std::vector<std::string> vars = Get(Get(Get({s}, kDigits), kArrows), kArrows);
-
-        int best = std::numeric_limits<int>::max();
-        for (const std::string& var : vars) {
-            best = std::min(best, (int)var.size());
-        }
-
+        int best = std::ranges::min(vars | std::views::transform([&](const std::string& var) {
+                                        return (int)var.size();
+                                    }));
         answer += std::stoi(s) * best;
     }
 
