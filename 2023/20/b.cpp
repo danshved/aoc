@@ -21,9 +21,9 @@ struct Signal {
     bool value;
 };
 
-// This doesn't solve the problem completely. It prints out the steps
+// This code doesn't solve the problem itself, but it helps. It prints out the steps
 // when a given module receives non-zero low pulses. Modules &xc, &th, &pd, &bp
-// do it every 3847, 4001, 3877, and 3823 steps respectively. The answer is
+// do it every 3847, 4001, 3877, and 3823 steps, respectively. The answer is
 // the product (and the least common multiple) of these 4 numbers.
 int main() {
     std::unordered_map<std::string, std::vector<std::string>> outputs;
