@@ -20,13 +20,13 @@ int main() {
 
     std::unordered_map<Coord, std::unordered_map<Coord, int>> dist;
     for (Coord start : points) {
-        DijkstraFrom(start, 0, [&](auto& search, Coord u, int d) {
+        BFSFrom(start, [&](auto& search, Coord u) {
             if (isdigit(input[u.i][u.j])) {
-                dist[start][u] = d;
+                dist[start][u] = search.Depth();
             }
             for (Coord v : Adj4(u)) {
                 if (box.contains(v) && input[v.i][v.j] != '#') {
-                    search.Look(v, d + 1);
+                    search.Look(v);
                 }
             }
         });
