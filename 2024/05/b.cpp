@@ -26,21 +26,15 @@ int main() {
 
         std::vector<int> order;
         bool ok = true;
-        DFS<int>(
-            [&](auto& search) {
-                for (int u : pages) {
-                    search.Look(u);
+        DFSFrom<int>(pages, [&](auto& search, int u) {
+            for (int v : edges[u]) {
+                if (pos.contains(v)) {
+                    search.Look(v);
+                    ok = ok && pos[u] < pos[v];
                 }
-            },
-            [&](auto& search, int u) {
-                for (int v : edges[u]) {
-                    if (pos.contains(v)) {
-                        search.Look(v);
-                        ok = ok && pos[u] < pos[v];
-                    }
-                }
-                order.push_back(u);
-            });
+            }
+            order.push_back(u);
+        });
 
         if (!ok) {
             answer += order[order.size() / 2];

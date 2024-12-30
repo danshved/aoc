@@ -2,8 +2,10 @@
 #define __AOC_GRAPH_SEARCH_H__
 
 #include <algorithm>
+#include <cassert>
 #include <optional>
 #include <queue>
+#include <ranges>
 #include <unordered_map>
 #include <vector>
 
@@ -95,6 +97,18 @@ DFSResult<Node, Hasher> DFSFrom(const Node& start, VisitFunc&& visit) {
         std::forward<VisitFunc>(visit));
 }
 
+template <typename Node, typename Hasher = std::hash<Node>,
+          std::ranges::input_range Range, typename VisitFunc>
+DFSResult<Node, Hasher> DFSFrom(const Range& range, VisitFunc&& visit) {
+    return DFS<Node, Hasher>(
+        [&range](auto& search) {
+            for (const Node& node : range) {
+                search.Look(node);
+            }
+        },
+        std::forward<VisitFunc>(visit));
+}
+
 enum class BFSEdge {
     kTree = 0,
     kTight = 1,
@@ -182,6 +196,18 @@ template <typename Node, typename Hasher = std::hash<Node>,
 BFSResult<Node, Hasher> BFSFrom(const Node& start, VisitFunc&& visit) {
     return BFS<Node, Hasher>(
         [&start](auto& search) { search.Look(start); },
+        std::forward<VisitFunc>(visit));
+}
+
+template <typename Node, typename Hasher = std::hash<Node>,
+          std::ranges::input_range Range, typename VisitFunc>
+BFSResult<Node, Hasher> BFSFrom(const Range& range, VisitFunc&& visit) {
+    return BFS<Node, Hasher>(
+        [&range](auto& search) {
+            for (const Node& node : range) {
+                search.Look(node);
+            }
+        },
         std::forward<VisitFunc>(visit));
 }
 
