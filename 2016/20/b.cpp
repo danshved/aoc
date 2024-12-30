@@ -1,36 +1,26 @@
 #include <iostream>
 #include <ranges>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "parse.h"
 
-struct Pair {
-    long long from;
-    long long to;
-
-    std::strong_ordering operator<=>(const Pair&) const = default;
-};
-
-Pair ParsePair(const std::string& s) {
-    auto [l, r] = SplitN(s, "-");
-    return {std::stoll(l), std::stoll(r)};
-}
-
 int main() {
-    std::vector<Pair> ranges;
+    std::vector<std::pair<long long, long long>> ranges;
     for (const std::string& line : Split(Trim(GetContents("input.txt")), "\n")) {
-        ranges.push_back(ParsePair(line));
+        auto [l, r] = SplitN(line, "-");
+        ranges.emplace_back(std::stoll(l), std::stoll(r));
     }
-
+    
     std::ranges::sort(ranges);
     long long i = 0;
     long long answer = 0;
-    for (const Pair& range : ranges) {
-        if (i < range.from) {
-            answer += range.from - i;
+    for (const std::pair<long long, long long>& range : ranges) {
+        if (i < range.first) {
+            answer += range.first - i;
         }
-        i = std::max(i, range.to + 1);
+        i = std::max(i, range.second + 1);
     }
     answer += (1ll << 32) - i;
     std::cout << answer << std::endl;
