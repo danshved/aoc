@@ -34,8 +34,8 @@ int main() {
     long long double_area = 0;
     long long border = 0;
 
-    for (const std::string& line : Split(Trim(GetContents("input.txt")), '\n')) {
-        std::string s = Split(line, ' ')[2];
+    for (const std::string& line : Split(Trim(GetContents("input.txt")), "\n")) {
+        std::string s = Split(line, " ")[2];
         Coord dir = kDirArray[s[7] - '0'];
         int steps = FromHex(s.substr(2, 5));
 

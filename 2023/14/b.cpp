@@ -70,7 +70,7 @@ std::string Cat(const std::vector<std::string>& ss) {
 }
 
 int main() {
-    std::vector<std::string> state = Split(Trim(GetContents("input.txt")), '\n');
+    std::vector<std::string> state = Split(Trim(GetContents("input.txt")), "\n");
     std::vector<std::vector<std::string>> states;
 
     std::unordered_map<std::string, int> index;

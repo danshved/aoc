@@ -26,16 +26,16 @@ const std::unordered_map<Coord, int> kDirCodes = {
 
 int main() {
     std::unordered_map<Coord, char> map;
-    int size_i = 0, size_j = 0;
+    Box box;
 
-    std::vector<std::string> lines = Split(GetContents("input.txt"), '\n');
-    auto [matrix, bottom] = Split2(lines, std::string());
+    std::vector<std::string> lines = Split(GetContents("input.txt"), "\n");
+    auto [matrix, bottom] = Split2(lines, {""});
     for (int i = 0; i < matrix.size(); i++) {
         for (int j = 0; j < matrix[i].size(); j++) {
             if (matrix[i][j] != ' ') {
                 map[{i, j}] = matrix[i][j];
-                size_i = std::max(size_i, i + 1);
-                size_j = std::max(size_j, j + 1);
+                box.size_i = std::max(box.size_i, i + 1);
+                box.size_j = std::max(box.size_j, j + 1);
             }
         }
     }
@@ -48,7 +48,7 @@ int main() {
     auto step = [&](const PosDir& u) {
         PosDir v = u.Step();
         if (!map.contains(v.pos)) {
-            for (PosDir x = u; InBounds(x.pos, size_i, size_j); x = x.StepBack()) {
+            for (PosDir x = u; box.contains(x.pos); x = x.StepBack()) {
                 if (map.contains(x.pos)) {
                     v = x;
                 }

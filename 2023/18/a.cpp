@@ -29,8 +29,8 @@ int main() {
     int double_area = 0;
     int border = 0;
 
-    for (const std::string& line : Split(Trim(GetContents("input.txt")), '\n')) {
-        auto ss = Split(line, ' ');
+    for (const std::string& line : Split(Trim(GetContents("input.txt")), "\n")) {
+        auto ss = Split(line, " ");
         Coord dir = kDirMap.at(ss[0]);
         int steps = std::stoi(ss[1]);
 

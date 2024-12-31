@@ -10,4 +10,17 @@ add_link_options(-Wl,--stack,256000000)
 
 include_directories(include)
 
+file(GLOB SOLUTIONS "[0-9][0-9][0-9][0-9]/*/*.cpp")
+foreach(PART_FILE ${SOLUTIONS})
+    get_filename_component(PART ${PART_FILE} NAME_WE)
+
+    get_filename_component(DAY_DIR ${PART_FILE} DIRECTORY)
+    get_filename_component(DAY ${DAY_DIR} NAME_WE)
+
+    get_filename_component(YEAR_DIR ${DAY_DIR} DIRECTORY)
+    get_filename_component(YEAR ${YEAR_DIR} NAME_WE)
+
+    add_executable(${YEAR}_${DAY}_${PART} ${PART_FILE})
+endforeach()
+
 add_executable(tests tests/tests.cpp)

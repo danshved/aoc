@@ -22,14 +22,14 @@
 #include "parse.h"
 
 int main() {
-    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), '\n');
-    auto [size_i, size_j] = Sizes<2>(input);
+    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), "\n");
+    Box box = Sizes<2>(input);
 
     auto count = [&](const PosDir& start) {
         std::unordered_set<Coord> energized;
         BFSFrom(start, [&](auto& search, PosDir u) {
             u = u.Step();
-            if (!InBounds(u.pos, size_i, size_j)) {
+            if (!box.contains(u.pos)) {
                 return;
             }
             energized.insert(u.pos);
@@ -68,13 +68,13 @@ int main() {
     };
 
     int answer = 0;
-    for (int i = 0; i < size_i; i++) {
+    for (int i = 0; i < box.size_i; i++) {
         answer = std::max(answer, count({{i, -1}, kEast}));
-        answer = std::max(answer, count({{i, size_j}, kWest}));
+        answer = std::max(answer, count({{i, box.size_j}, kWest}));
     }
-    for (int j = 0; j < size_j; j++) {
+    for (int j = 0; j < box.size_j; j++) {
         answer = std::max(answer, count({{-1, j}, kSouth}));
-        answer = std::max(answer, count({{size_j, j}, kNorth}));
+        answer = std::max(answer, count({{box.size_i, j}, kNorth}));
     }
     std::cout << answer << std::endl;
     return 0;

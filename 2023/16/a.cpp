@@ -22,13 +22,13 @@
 #include "parse.h"
 
 int main() {
-    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), '\n');
-    auto [size_i, size_j] = Sizes<2>(input);
+    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), "\n");
+    Box box = Sizes<2>(input);
 
     std::unordered_set<Coord> energized;
     BFSFrom(PosDir{{0, -1}, kEast}, [&](auto& search, PosDir u) {
         u = u.Step();
-        if (!InBounds(u.pos, size_i, size_j)) {
+        if (!box.contains(u.pos)) {
             return;
         }
         energized.insert(u.pos);

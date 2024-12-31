@@ -25,7 +25,7 @@ struct Stone {
 };
 
 Stone ParseStone(const std::string& s) {
-    std::vector<std::string> ws = Split(s, '@');
+    std::vector<std::string> ws = Split(s, "@");
     assert(ws.size() == 2);
 
     std::vector<long long> pos = ParseVector<long long>(ws[0]);
@@ -43,7 +43,7 @@ T Det(T a, T b, T c, T d) {
 }
 
 int main() {
-    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), '\n');
+    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), "\n");
     std::vector<Stone> stones;
     for (const std::string& line : lines) {
         stones.push_back(ParseStone(line));

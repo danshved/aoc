@@ -24,12 +24,13 @@
 const int kRadius = 26501365;
 
 int main() {
-    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), '\n');
+    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), "\n");
     Coord start = FindOrDie<2>(input, 'S');
     auto [size_i, size_j] = Sizes<2>(input);
     assert(size_i == size_j);
     int size = size_i;
     assert(size % 2 == 1);
+    Box zero_square = {0, 0, size, size};
 
     // Important points through which inter-square shortest paths can always
     // be made to pass.
@@ -53,9 +54,8 @@ int main() {
     std::unordered_map<Coord, std::unordered_map<Coord, int>> d;
     for (Coord hub : hubs) {
         d[hub] = BFSFrom(hub, [&](auto& search, Coord u) {
-            for (Coord dir : kDirs) {
-                Coord v = u + dir;
-                if (InBounds(v, size, size) && input[v.i][v.j] != '#') {
+            for (Coord v : Adj4(u)) {
+                if (zero_square.contains(v) && input[v.i][v.j] != '#') {
                     search.Look(v);
                 }
             }
@@ -64,7 +64,7 @@ int main() {
 
     long long answer = 0;
     for (Coord hub : hubs) {
-        for (Coord pos : Bounds(size, size)) {
+        for (Coord pos : zero_square) {
             if (!d.at(hub).contains(pos)) {
                 continue;
             }

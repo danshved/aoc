@@ -112,8 +112,8 @@ const std::unordered_map<Coord, int> kDirCodes = {
     {kEast, 0}, {kSouth, 1}, {kWest, 2}, {kNorth, 3}};
 
 int main() {
-    std::vector<std::string> lines = Split(GetContents("input.txt"), '\n');
-    auto [matrix, bottom] = Split2(lines, std::string());
+    std::vector<std::string> lines = Split(GetContents("input.txt"), "\n");
+    auto [matrix, bottom] = Split2(lines, {""});
     assert(bottom.size() == 1);
     std::string commands = bottom[0];
 

@@ -34,13 +34,13 @@ Coord StepTowards(Coord c) {
 };
 
 int main() {
-    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), '\n');
+    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), "\n");
     std::vector<Coord> rope(10, Coord{0, 0});
     std::unordered_set<Coord> visited;
 
     visited.insert(rope.back());
     for (const std::string& s : lines) {
-        auto [cmd, count_s] = Split2(s, ' ');
+        auto [cmd, count_s] = SplitN(s, " ");
         Coord dir = kCmdToDir.at(cmd);
         int count = std::stoi(count_s);
         for (int i = 0; i < count; i++) {

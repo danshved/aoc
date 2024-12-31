@@ -18,8 +18,8 @@
 #include "parse.h"
 
 int main() {
-    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), '\n');
-    std::vector<std::vector<std::string>> pars = Split(lines, std::string());
+    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), "\n");
+    std::vector<std::vector<std::string>> pars = Split(lines, {""});
     assert(pars.size() == 2);
     assert(pars[0].size() == 1);
 

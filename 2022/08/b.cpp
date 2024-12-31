@@ -22,15 +22,15 @@
 #include "parse.h"
 
 int main() {
-    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), '\n');
-    auto [size_i, size_j] = Sizes<2>(input);
+    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), "\n");
+    Box box = Sizes<2>(input);
 
     int answer = 0;
-    for (Coord start : Bounds(size_i, size_j)) {
+    for (Coord start : box) {
         int score = 1;
-        for (Coord dir : kDirs) {
+        for (Coord dir : Adj4({0, 0})) {
             int count = 0;
-            for (Coord cur = start + dir; InBounds(cur, size_i, size_j); cur += dir) {
+            for (Coord cur = start + dir; box.contains(cur); cur += dir) {
                 count++;
                 if (input[cur.i][cur.j] >= input[start.i][start.j]) {
                     break;

@@ -33,15 +33,15 @@ const Coord kStart = {0, 500};
 const Coord kMoves[3] = {kSouth, kSouth + kWest, kSouth + kEast};
 
 int main() {
-    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), '\n');
+    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), "\n");
 
     std::unordered_map<Coord, char> blocks;
     int max_i = 0;
     for (const std::string& s : lines) {
-        std::vector<std::string> ss = Split(s, ' ');
+        std::vector<std::string> ss = Split(s, " ");
         std::vector<Coord> vertices;
         for (int i = 0; 2 * i < ss.size(); i++) {
-            auto [l, r] = Split2(ss[2 * i], ',');
+            auto [l, r] = SplitN(ss[2 * i], ",");
             vertices.emplace_back(std::stoi(r), std::stoi(l));
         }
         assert(vertices.size() >= 2);

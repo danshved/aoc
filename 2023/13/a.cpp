@@ -61,8 +61,8 @@ std::optional<int> FindSep(const std::vector<std::string> &par) {
 }
 
 int main() {
-    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), '\n');
-    std::vector<std::vector<std::string>> pars = Split(lines, std::string());
+    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), "\n");
+    std::vector<std::vector<std::string>> pars = Split(lines, {""});
 
     int answer = 0;
     for (const std::vector<std::string>& par : pars) {

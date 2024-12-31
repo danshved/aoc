@@ -44,9 +44,9 @@ void PrintAnswer(const Edge& a, const Edge& b, const Edge& c, int size1, int siz
 int main() {
     PerVertex<std::vector<Vertex>> graph;
     std::vector<Edge> edges;
-    for (const std::string& s : Split(Trim(GetContents("input.txt")), '\n')) {
-        auto [u, right] = Split2(s, ':');
-        for (const std::string& v : Split(Trim(right), ' ')) {
+    for (const std::string& s : Split(Trim(GetContents("input.txt")), "\n")) {
+        auto [u, right] = SplitN(s, ":");
+        for (const std::string& v : Split(Trim(right), " ")) {
             graph[u].push_back(v);
             graph[v].push_back(u);
             edges.push_back({u, v});

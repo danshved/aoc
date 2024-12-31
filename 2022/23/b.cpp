@@ -24,11 +24,11 @@
 const Coord kMoves[4] = {kNorth, kSouth, kWest, kEast};
 
 int main() {
-    std::vector<std::string> matrix = Split(Trim(GetContents("input.txt")), '\n');
-    auto [size_i, size_j] = Sizes<2>(matrix);
+    std::vector<std::string> matrix = Split(Trim(GetContents("input.txt")), "\n");
+    Box box = Sizes<2>(matrix);
 
     std::unordered_set<Coord> elves;
-    for (Coord c : Bounds(size_i, size_j)) {
+    for (Coord c : box) {
         if (matrix[c.i][c.j] == '#') {
             elves.insert(c);
         }

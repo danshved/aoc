@@ -455,6 +455,8 @@ class PathCO {
         return Iterator(end_, end_);
     }
 
+    PathCO() : PathCO(Coord{0, 0}, Coord{0, 0}) {}
+
     PathCO(const Coord& start, const Coord& end) : start_(start), end_(end) {}
 
    private:
@@ -511,6 +513,8 @@ class PathCC {
     auto end() const {
         return Iterator(std::nullopt, end_);
     }
+
+    PathCC() : PathCC(Coord{0, 0}, Coord{0, 0}) {}
 
     PathCC(const Coord& start, const Coord& end) : start_(start), end_(end) {}
 

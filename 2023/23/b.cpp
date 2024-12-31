@@ -22,10 +22,10 @@
 #include "parse.h"
 
 int main() {
-    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), '\n');
-    auto [size_i, size_j] = Sizes<2>(input);
+    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), "\n");
+    Box box = Sizes<2>(input);
     Coord start = {0, 1};
-    Coord finish = {size_i - 1, size_j - 2};
+    Coord finish = {box.size_i - 1, box.size_j - 2};
 
     // Naïve recursion takes over 2 minutes but works.
     int answer = 0;
@@ -36,9 +36,8 @@ int main() {
         }
 
         char c = std::exchange(input[u.i][u.j], '#');
-        for (Coord dir : kDirs) {
-            Coord v = u + dir;
-            if (InBounds(v, size_i, size_j) && input[v.i][v.j] != '#') {
+        for (Coord v : Adj4(u)) {
+            if (box.contains(v) && input[v.i][v.j] != '#') {
                 self(self, v, depth + 1);
             }
         }

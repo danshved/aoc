@@ -30,8 +30,8 @@ std::unordered_map<char, std::unordered_set<Coord>> pipes = {
 };
 
 int main() {
-    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), '\n');
-    auto [size_i, size_j] = Sizes<2>(input);
+    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), "\n");
+    Box box = Sizes<2>(input);
     Coord start = FindOrDie<2>(input, 'S');
 
     int border = 0;
@@ -43,7 +43,7 @@ int main() {
         border++;
         for (Coord dir : pipes.at(input[u.i][u.j])) {
             Coord v = u + dir;
-            if (!InBounds(v, size_i, size_j)) {
+            if (!box.contains(v)) {
                 continue;
             }
             if (!pipes.at(input[v.i][v.j]).contains(dir.Flip())) {

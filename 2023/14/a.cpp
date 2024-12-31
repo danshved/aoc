@@ -17,7 +17,7 @@
 #include "parse.h"
 
 int main() {
-    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), '\n');
+    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), "\n");
     int height = input.size();
     int width = input[0].size();
 

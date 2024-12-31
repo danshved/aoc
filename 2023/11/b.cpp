@@ -20,12 +20,12 @@
 #include "parse.h"
 
 int main() {
-    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), '\n');
-    auto [size_i, size_j] = Sizes<2>(input);
+    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), "\n");
+    Box box = Sizes<2>(input);
 
     std::vector<Coord> galaxies;
-    std::vector<int> expand_i(size_i, 1000000), expand_j(size_j, 1000000), real_i, real_j;
-    for (auto [i, j] : Bounds(size_i, size_j)) {
+    std::vector<int> expand_i(box.size_i, 1000000), expand_j(box.size_j, 1000000), real_i, real_j;
+    for (auto [i, j] : box) {
         if (input[i][j] == '#') {
             expand_i[i] = 1;
             expand_j[j] = 1;
@@ -34,7 +34,7 @@ int main() {
     }
     std::partial_sum(expand_i.begin(), expand_i.end(), std::back_inserter(real_i));
     std::partial_sum(expand_j.begin(), expand_j.end(), std::back_inserter(real_j));
-    auto Expand = [&](Coord c) -> Coord {
+    auto expand = [&](Coord c) -> Coord {
         return {real_i[c.i], real_j[c.j]};
     };
 
@@ -44,7 +44,7 @@ int main() {
             if (a >= b) {
                 continue;
             }
-            answer += (Expand(a) - Expand(b)).Manhattan();
+            answer += (expand(a) - expand(b)).Manhattan();
         }
     }
     std::cout << answer << std::endl;

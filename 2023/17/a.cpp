@@ -36,8 +36,8 @@ struct std::hash<State> {
 };
 
 int main() {
-    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), '\n');
-    auto [size_i, size_j] = Sizes<2>(input);
+    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), "\n");
+    Box box = Sizes<2>(input);
 
     int answer = std::numeric_limits<int>::max();
     Dijkstra<State, int, std::hash<State>, ShortQueue<State>>(
@@ -46,14 +46,14 @@ int main() {
             search.Look({{{0, 0}, kSouth}, 0}, 0);
         },
         [&](auto& search, const State& u, int d) {
-            if (u.pd.pos == Coord{size_i - 1, size_j - 1}) {
+            if (u.pd.pos == Coord{box.size_i - 1, box.size_j - 1}) {
                 answer = std::min(answer, d);
                 return;
             }
             
             if (u.steps < 3) {
                 State v = {u.pd.Step(), u.steps + 1};
-                if (InBounds(v.pd.pos, size_i, size_j)) {
+                if (box.contains(v.pd.pos)) {
                     search.Look(v, d + (input[v.pd.pos.i][v.pd.pos.j] - '0'));
                 }
             }

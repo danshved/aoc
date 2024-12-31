@@ -42,7 +42,7 @@ struct std::hash<Brick> {
 };
 
 Brick ParseBrick(const std::string& s) {
-    auto [sa, sb] = Split2(s, '~');
+    auto [sa, sb] = SplitN(s, "~");
     std::vector<int> va = ParseVector<int>(sa);
     std::vector<int> vb = ParseVector<int>(sb);
     for (int i = 0; i < 3; i++) {
@@ -63,7 +63,7 @@ std::optional<int> Weight(const Brick& u, const Brick& v) {
 }
 
 int main() {
-    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), '\n');
+    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), "\n");
     std::vector<Brick> bricks;
     for (const std::string& s : lines) {
         bricks.push_back(ParseBrick(s));

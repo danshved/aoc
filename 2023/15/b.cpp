@@ -38,7 +38,7 @@ int Hash(const std::string& s) {
 }
 
 int main() {
-    std::vector<std::string> ss = Split(Trim(GetContents("input.txt")), ',');
+    std::vector<std::string> ss = Split(Trim(GetContents("input.txt")), ",");
     std::vector<std::list<Entry>> boxes(256, std::list<Entry>());
 
     for (const std::string& s : ss) {

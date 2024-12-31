@@ -22,8 +22,8 @@
 #include "parse.h"
 
 int main() {
-    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), '\n');
-    auto [size_i, size_j] = Sizes<2>(input);
+    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), "\n");
+    Box box = Sizes<2>(input);
     Coord start = FindOrDie<2>(input, 'S');
 
     int answer = 0;
@@ -31,9 +31,8 @@ int main() {
         if (search.Depth() <= 64 && search.Depth() % 2 == 0) {
             answer++;
         }
-        for (Coord dir : kDirs) {
-            Coord v = u + dir;
-            if (InBounds(v, size_i, size_j) && input[v.i][v.j] != '#') {
+        for (Coord v : Adj4(u)) {
+            if (box.contains(v) && input[v.i][v.j] != '#') {
                 search.Look(v);
             }
         }

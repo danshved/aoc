@@ -31,7 +31,7 @@ int main() {
     for (const std::string& line : input) {
         for (char c : line) {
             Coord v = pos + kCommands.at(c);
-            if (InBounds(v, 3, 3)) {
+            if (Box(3, 3).contains(v)) {
                 pos = v;
             }
         }

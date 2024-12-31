@@ -43,7 +43,7 @@ Workflow ParseWorkflow(const std::string& s) {
     std::vector<std::string> words = Split(s, ",");
     assert(words.size() >= 1);
     for (int i = 0; i < words.size() - 1; i++) {
-        auto [l, r] = Split2(words[i], ":");
+        auto [l, r] = SplitN(words[i], ":");
         result.rules.emplace_back(ParseCondition(l), r);
     }
     result.otherwise = words.back();

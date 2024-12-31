@@ -26,7 +26,7 @@ int main() {
     Coord pos = {0, 0};
     visited.insert(pos);
     for (char c : Trim(GetContents("input.txt"))) {
-        pos += kCharToDir.at(c);
+        pos += kDirArrows.at(c);
         visited.insert(pos);
     }
     std::cout << visited.size() << std::endl;

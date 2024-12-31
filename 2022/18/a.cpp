@@ -42,7 +42,7 @@ const Vect kDirs6[6] = {{1, 0, 0}, {-1, 0, 0}, {0, 1, 0}, {0, -1, 0}, {0, 0, 1},
 
 int main() {
     std::unordered_set<Vect> cubes;
-    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), '\n');
+    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), "\n");
     for (const std::string& line : lines) {
         std::vector<int> v = ParseVector<int>(line);
         assert(v.size() == 3);

@@ -30,7 +30,7 @@ const int kI = 2000000;
 
 Pair ParsePair(const std::string& s) {
     std::vector<int> values;
-    for (const std::string& word : Split(s, ' ')) {
+    for (const std::string& word : Split(s, " ")) {
         if (int pos = word.find('='); pos != std::string::npos) {
             values.push_back(std::stoi(word.substr(pos + 1)));
         }
@@ -42,7 +42,7 @@ Pair ParsePair(const std::string& s) {
 int main() {
     std::unordered_map<Coord, char> map;
     std::vector<Pair> pairs;
-    for (const std::string& line : Split(Trim(GetContents("input.txt")), '\n')) {
+    for (const std::string& line : Split(Trim(GetContents("input.txt")), "\n")) {
         Pair pair = ParsePair(line);
         pairs.push_back(pair);
         map[pair.sensor] = 'S';

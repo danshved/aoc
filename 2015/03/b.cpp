@@ -26,7 +26,7 @@ int main() {
     Coord santa = {0, 0}, robot = {0, 0};
     visited.insert(santa);
     for (char c : Trim(GetContents("input.txt"))) {
-        santa += kCharToDir.at(c);
+        santa += kDirArrows.at(c);
         visited.insert(santa);
         std::swap(santa, robot);
     }

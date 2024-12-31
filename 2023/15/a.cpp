@@ -32,7 +32,7 @@ int Hash(const std::string& s) {
 }
 
 int main() {
-    std::vector<std::string> ss = Split(Trim(GetContents("input.txt")), ',');
+    std::vector<std::string> ss = Split(Trim(GetContents("input.txt")), ",");
     int answer = 0;
     for (const std::string& s : ss) {
         answer += Hash(s);

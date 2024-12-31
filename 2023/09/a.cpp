@@ -17,7 +17,7 @@
 #include "parse.h"
 
 int main() {
-    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), '\n');
+    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), "\n");
 
     long long answer = 0;
     for (const std::string& line : lines) {

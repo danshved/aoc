@@ -28,7 +28,7 @@ struct Pair {
 
 Pair ParsePair(const std::string& s) {
     std::vector<int> values;
-    for (const std::string& word : Split(s, ' ')) {
+    for (const std::string& word : Split(s, " ")) {
         if (int pos = word.find('='); pos != std::string::npos) {
             values.push_back(std::stoi(word.substr(pos + 1)));
         }
@@ -38,10 +38,11 @@ Pair ParsePair(const std::string& s) {
 }
 
 const int kMax = 4000000;
+Box kBox = {kMax + 1, kMax + 1};
 
 int main() {
     std::vector<Pair> pairs;
-    for (const std::string& line : Split(Trim(GetContents("input.txt")), '\n')) {
+    for (const std::string& line : Split(Trim(GetContents("input.txt")), "\n")) {
         pairs.push_back(ParsePair(line));
     }
 
@@ -54,7 +55,7 @@ int main() {
     for (const Pair& p : pairs) {
         int radius = (p.beacon - p.sensor).Manhattan();
         for (const Coord& c : ManhattanCircle(p.sensor, radius + 1)) {
-            if (InBounds(c, kMax + 1, kMax + 1) && is_far(c)) {
+            if (kBox.contains(c) && is_far(c)) {
                 std::cout << c.i + c.j * 4000000ll << std::endl;
             }
         }

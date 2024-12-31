@@ -31,13 +31,13 @@ void Adjust(std::vector<std::string>& matrix) {
 int main() {
     std::vector<std::string> matrix = Split(Trim(GetContents("input.txt")), "\n");
     Adjust(matrix);
-    auto [size_i, size_j] = Sizes<2>(matrix);
+    Box box = Sizes<2>(matrix);
 
     for (int step = 0; step < 100; step++) {
-        std::vector<std::string> next(size_j, std::string(size_i, '.'));
-        for (Coord u : Bounds(size_i, size_j)) {
+        std::vector<std::string> next(box.size_j, std::string(box.size_i, '.'));
+        for (Coord u : box) {
             int neighbors = std::ranges::count_if(Adj8(u), [&](const Coord& v){
-                return InBounds(v, size_i, size_j) && matrix[v.i][v.j] == '#';
+                return box.contains(v) && matrix[v.i][v.j] == '#';
             });
             if (matrix[u.i][u.j] == '#') {
                 next[u.i][u.j] = (neighbors == 2 || neighbors == 3) ? '#' : '.';
@@ -49,7 +49,7 @@ int main() {
         Adjust(matrix);
     }
 
-    int answer = std::ranges::count_if(Bounds(size_i, size_j), [&](const Coord &u) {
+    int answer = std::ranges::count_if(box, [&](const Coord &u) {
         return matrix[u.i][u.j] == '#';
     });
     std::cout << answer << std::endl;

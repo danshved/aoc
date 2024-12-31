@@ -38,7 +38,7 @@ int main() {
     for (const std::string& line : input) {
         for (char c : line) {
             Coord v = pos + kCommands.at(c);
-            if (InBounds(v, 5, 5) && kKeypad[v.i][v.j] != ' ') {
+            if (Box(5, 5).contains(v) && kKeypad[v.i][v.j] != ' ') {
                 pos = v;
             }
         }

@@ -17,12 +17,11 @@
 #include "parse.h"
 
 int main() {
-    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), '\n');
+    std::vector<std::string> lines = Split(Trim(GetContents("input.txt")), "\n");
 
     long long answer = 0;
     for (const std::string& line : lines) {
-        std::string s, right;
-        std::tie(s, right) = Split2(line, ' ');
+        auto [s, right] = SplitN(line, " ");
         std::vector<int> segs = ParseVector<int>(right);
 
         std::vector<std::vector<long long>> d(s.size() + 1, std::vector<long long>(segs.size() + 1, 0));

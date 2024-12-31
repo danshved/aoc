@@ -58,9 +58,9 @@ int main() {
     std::unordered_map<std::string, std::vector<std::string>> moves;
     std::unordered_map<std::string, int> valve_indices;
 
-    for (const std::string& line : Split(Trim(GetContents("input.txt")), '\n')) {
+    for (const std::string& line : Split(Trim(GetContents("input.txt")), "\n")) {
         // Valve EG has flow rate=21; tunnels lead to valves WZ, OF, ZP, QD
-        std::vector<std::string> words = Split(line, ' ');
+        std::vector<std::string> words = Split(line, " ");
         std::string valve = words[1];
         rates[valve] = std::stoi(words[4].substr(words[4].find('=') + 1));
         for (int i = 9; i < words.size(); i++) {

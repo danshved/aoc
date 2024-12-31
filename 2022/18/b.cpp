@@ -44,7 +44,7 @@ int main() {
     std::unordered_set<Vect> cubes;
     int min_x = 0, min_y = 0, min_z = 0, max_x = 0, max_y = 0, max_z = 0;
 
-    for (const std::string& line : Split(Trim(GetContents("input.txt")), '\n')) {
+    for (const std::string& line : Split(Trim(GetContents("input.txt")), "\n")) {
         std::vector<int> v = ParseVector<int>(line);
         assert(v.size() == 3);
 

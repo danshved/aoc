@@ -22,8 +22,8 @@
 #include "parse.h"
 
 int main() {
-    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), '\n');
-    auto [size_i, size_j] = Sizes<2>(input);
+    std::vector<std::string> input = Split(Trim(GetContents("input.txt")), "\n");
+    Box box = Sizes<2>(input);
 
     std::unordered_map<PosDir, int> d;
     auto max_height = [&](auto &self, const PosDir& pd) {
@@ -32,14 +32,14 @@ int main() {
         }
 
         PosDir next = pd.Step();
-        if (!InBounds(next.pos, size_i, size_j)) {
+        if (!box.contains(next.pos)) {
             return d[pd] = -1;
         }
 
         return d[pd] = std::max(self(self, next), input[next.pos.i][next.pos.j] - '0');
     };
     auto is_visible = [&](Coord pos) {
-        for (Coord dir : kDirs) {
+        for (Coord dir : Adj4({0, 0})) {
             if (max_height(max_height, {pos, dir}) < input[pos.i][pos.j] - '0') {
                 return true;
             }
@@ -47,6 +47,6 @@ int main() {
         return false;
     };
 
-    std::cout << std::ranges::count_if(Bounds(size_i, size_j), is_visible) << std::endl;    
+    std::cout << std::ranges::count_if(box, is_visible) << std::endl;    
     return 0;
 }
