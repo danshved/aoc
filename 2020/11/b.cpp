@@ -12,7 +12,7 @@ int main() {
     Box box = Sizes<2>(matrix);
 
     while (true) {
-        auto see = [&](auto& self, Coord u, Coord dir) -> bool {
+        auto see = [&](Coord u, Coord dir) -> bool {
             if (matrix[u.i][u.j] == '.') {
                 return false;
             }
@@ -29,7 +29,7 @@ int main() {
         std::vector<std::string> new_matrix(box.size_i, std::string(box.size_j, '.'));
         for (Coord u : box) {
             int count = std::ranges::count_if(Adj8({0, 0}), [&](Coord dir) {
-                return see(see, u, dir);
+                return see(u, dir);
             });
             new_matrix[u.i][u.j] =
                 (matrix[u.i][u.j] == 'L' && count == 0)   ? '#'
