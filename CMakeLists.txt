@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 # to keep asserts (so no -DNDEBUG) and we want to fail on arithmetic overflow
 # (-ftrapv). We also want a large stack for DFS.
 add_compile_options(-ftrapv -O3)
-add_link_options(-Wl,--stack,256000000)
+add_link_options(-Wl,-z,stack-size=256000000)
 
 include_directories(include)
 
