@@ -1,2 +1,4 @@
 *.exe
+a.out
+b.out
 /build
