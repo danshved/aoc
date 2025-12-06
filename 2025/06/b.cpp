@@ -31,11 +31,9 @@ int main() {
         assert (op == '*' || op == '+');
         int width = std::find_if(input[4].begin() + col + 1, input[4].end(), [&](char ch) {return ch != ' ';}) - input[4].begin() - col;
 
-        std::vector<std::string> table(4, std::string(width, ' '));
+        std::vector<std::string> table;
         for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < width; j++) {
-                table[i][j] = input[i][col + j];
-            }
+            table.push_back(input[i].substr(col, width));
         }
 
         long long acc = (op == '+') ? 0 : 1;
