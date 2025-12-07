@@ -22,29 +22,22 @@ int main() {
     std::vector<std::string> input = Split(Trim(GetContents("input.txt")), "\n");
     Box box = Sizes<2>(input);
     Coord start = FindOrDie<2>(input, 'S');
-    std::cout << start.i << " " << start.j << std::endl;
 
     int answer = 0;
-    std::unordered_set<int> beams = {start.j};
-    for (int i = 0; i < box.size_i - 1; i++) {
-        std::cout << "row " << i << std::endl;
-        std::unordered_set<int> new_beams;
-        for (int beam : beams) {
-            if (input[i + 1][beam] == '.') {
-                new_beams.insert(beam);
-            } else {
-                answer++;
-                if (beam - 1 >= 0) {
-                    new_beams.insert(beam - 1);
-                }
-                if (beam + 1 < box.size_j) {
-                    new_beams.insert(beam + 1);
-                }
-            }
+    DFSFrom(start, [&](auto& search, Coord u) {
+        Coord below{u.i + 1, u.j}, left{u.i + 1, u.j - 1}, right{u.i + 1, u.j + 1};
+        if (!box.contains(below)) {
+            return;
         }
-        beams = std::move(new_beams);
-    }
-    std::cout << answer << std::endl;
+        if (input[below.i][below.j] == '.') {
+            search.Look(below);
+        } else {
+            answer++;
+            search.Look(left);
+            search.Look(right);
+        }
+    });
 
+    std::cout << answer << std::endl;
     return 0;
 }
