@@ -91,6 +91,5 @@ int main() {
     std::sort(comp_sizes.begin(), comp_sizes.end());
     std::reverse(comp_sizes.begin(), comp_sizes.end());
     std::cout << (comp_sizes[0] * comp_sizes[1] * comp_sizes[2]) << std::endl;
-
     return 0;
 }
