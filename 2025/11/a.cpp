@@ -22,7 +22,7 @@ int main() {
     std::unordered_map<std::string, std::vector<std::string>> graph;
     for (const std::string& line : Split(Trim(GetContents("input.txt")), "\n")) {
         auto [from, right] = SplitN(line, ": ");
-        auto& edges = graph[from];
+        std::vector<std::string>& edges = graph[from];
         for (const std::string& to : Split(right, " ")) {
             edges.push_back(to);
         }
